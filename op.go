@@ -13,7 +13,7 @@ const (
 	OP_ID_WIDTH = 6
 
 	PUSH_INT_VAL_POS = OP_ID_WIDTH
-	PUSH_INT_VAL_WIDTH = uint8(unsafe.Sizeof(Op(0)) * 8)
+	PUSH_INT_VAL_WIDTH = uint8(unsafe.Sizeof(Op(0)) * 8) - PUSH_INT_VAL_POS
 		
 	ADD_OP = iota
 	PUSH_INT_OP

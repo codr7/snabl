@@ -6,6 +6,6 @@
 * add reader
 * add repl
 * add functions
-** args after functions
-** fixed function arity
-** push args on stack
+** prefix syntax
+** fixed arity
+** push args on stack before call
