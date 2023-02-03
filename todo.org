@@ -1,0 +1,9 @@
+* add + macro
+** + 1 2
+** add Macro type
+* add reader
+* add repl
+* add functions
+** args after functions
+** fixed function arity
+** push args on stack
