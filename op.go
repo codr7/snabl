@@ -6,9 +6,8 @@ import (
 	"unsafe"
 )
 
-type Op = uint64
-
-type OpIdT = uint8
+type Op uint64
+type OpId = uint8
 
 const (
 	OP_ID_WIDTH = 6
@@ -19,28 +18,29 @@ const (
 	ADD_OP = iota
 	PUSH_INT_OP
 	STOP_OP
+	TRACE_OP
 )
 
-type OpArgT interface {
+type OpArgType interface {
 	uint8 | int 
 }
 
-func OpArg[T OpArgT](op Op, pos, width uint8) T {
+func OpArg[T OpArgType](op Op, pos, width uint8) T {
 	return (T(op) >> pos) & ((T(1) << width) - 1)
 }
 
-func OpId(op Op) OpIdT {
-	return OpArg[OpIdT](op, 0, OP_ID_WIDTH)
+func (self Op) Id() OpId {
+	return OpArg[OpId](self, 0, OP_ID_WIDTH)
 }
 
-func OpTrace(pc Pc, op Op, out io.Writer) {
+func (self Op) Trace(pc Pc, out io.Writer) {
 	fmt.Fprintf(out, "%v ", pc) 
 
-	switch id := OpId(op); id {
+	switch id := self.Id(); id {
 	case ADD_OP:
 		io.WriteString(out, "ADD")
 	case PUSH_INT_OP:
-		io.WriteString(out, "PUSH_INT")
+		fmt.Fprintf(out, "PUSH_INT %v", self.PushIntVal())
 	case STOP_OP:
 		io.WriteString(out, "STOP")
 	default:
@@ -58,11 +58,15 @@ func PushIntOp(val int) Op {
 	return Op(PUSH_INT_OP) + Op(val << PUSH_INT_VAL_POS)
 }
 
-func PushIntVal(op Op) int {
-	return OpArg[int](op, PUSH_INT_VAL_POS, PUSH_INT_VAL_WIDTH)
+func (self Op) PushIntVal() int {
+	return OpArg[int](self, PUSH_INT_VAL_POS, PUSH_INT_VAL_WIDTH)
 }
 
 func StopOp() Op {
 	return Op(STOP_OP)
+}
+
+func TraceOp() Op {
+	return Op(TRACE_OP)
 }
 

@@ -1,3 +1,5 @@
+* add Env type
+* add vm.RootEnv
 * add + macro
 ** + 1 2
 ** add Macro type

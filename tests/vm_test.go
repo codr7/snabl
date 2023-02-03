@@ -10,10 +10,10 @@ func TestEval(t *testing.T) {
 	vm.Init()
 	
 	pc := vm.EmitPc()
-	vm.Code[vm.Emit(1)] = snabl.PushIntOp(35) 
-	vm.Code[vm.Emit(1)] = snabl.PushIntOp(7) 
-	vm.Code[vm.Emit(1)] = snabl.AddOp() 
-	vm.Code[vm.Emit(1)] = snabl.StopOp()
+	vm.Code[vm.Emit()] = snabl.PushIntOp(35) 
+	vm.Code[vm.Emit()] = snabl.PushIntOp(7) 
+	vm.Code[vm.Emit()] = snabl.AddOp() 
+	vm.Code[vm.Emit()] = snabl.StopOp()
 	
 	if err := vm.Eval(&pc); err != nil {
 		t.Fatal(err)
