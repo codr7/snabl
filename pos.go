@@ -20,6 +20,6 @@ func (self *Pos) Init(source string) *Pos {
 	return self
 }
 
-func (self *Pos) String() string {
+func (self Pos) String() string {
 	return fmt.Sprintf("%v@%v:%v", self.source, self.line, self.column)
 }

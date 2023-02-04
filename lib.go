@@ -19,6 +19,8 @@ func (self *BasicLib) Name() string {
 	return self.name
 }
 
-func (self *BasicLib) BindPrim(name string, arity uint, body PrimBody) {
-	self.Bind(name, &Abc.PrimType, NewPrim(name, arity, body))
+func (self *BasicLib) BindPrim(name string, arity uint, body PrimBody) *Prim {
+	p := NewPrim(name, arity, body)
+	self.Bind(name, &Abc.PrimType, p)
+	return p
 }

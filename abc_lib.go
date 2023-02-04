@@ -25,7 +25,7 @@ type FunType struct {
 }
 
 func (self *FunType) Dump(val V, out io.Writer) error {
-	_, err := fmt.Fprintf(out, "%v", val.d.(*Fun))
+	_, err := fmt.Fprintf(out, "%v", val.d.(*Fun).String())
 	return err
 }
 
@@ -43,7 +43,7 @@ type PrimType struct {
 }
 
 func (self *PrimType) Dump(val V, out io.Writer) error {
-	_, err := fmt.Fprintf(out, "%v", val.d.(*Prim))
+	_, err := fmt.Fprintf(out, "%v", val.d.(*Prim).String())
 	return err
 }
 
@@ -53,6 +53,8 @@ type AbcLib struct {
 	IntType IntType
 	PosType PosType
 	PrimType PrimType
+
+	AddPrim, DumpPrim *Prim
 }
 
 func (self *AbcLib) Init() {
@@ -62,8 +64,15 @@ func (self *AbcLib) Init() {
 	self.PosType.Init("Pos")
 	self.PrimType.Init("Prim")
 
-	self.BindPrim("dump", 1, func(vm *Vm, pos Pos) error {
+	self.AddPrim = self.BindPrim("+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
+		b := vm.Stack.Pop().d.(int)
+		a := vm.Stack.Top()
+		a.Init(&Abc.IntType, a.d.(int) + b)
+		return nil
+	})
+	
+	self.DumpPrim = self.BindPrim("dump", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		vm.Stack.Pop().Dump(vm.Stdout)
 		return nil
-	})	
+	})
 }

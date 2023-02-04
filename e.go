@@ -3,11 +3,16 @@ package snabl
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
-func NewE(pos Pos, spec string, args...interface{}) error {
-	msg := fmt.Sprintf("Error in %v@%v:%v %v", 
-		pos.source, pos.line, pos.column, fmt.Sprintf(spec, args...))
+func NewE(pos *Pos, spec string, args...interface{}) error {
+	var msg strings.Builder
 
-	return errors.New(msg)
+	if pos != nil {
+		fmt.Fprintf(&msg, "%v ", pos)
+	}
+	
+	fmt.Fprintf(&msg, spec, args...)
+	return errors.New(msg.String())
 }

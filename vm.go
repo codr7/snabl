@@ -35,7 +35,7 @@ func (self *Vm) Tag(t VT, d any) Tag {
 	return i
 }
 
-func (self *Vm) E(pos Pos, spec string, args...interface{}) error {
+func (self *Vm) E(pos *Pos, spec string, args...interface{}) error {
 	err := NewE(pos, spec, args...)
 	
 	if self.Debug {
@@ -87,6 +87,12 @@ func (self *Vm) Eval(pc *Pc) error {
 		case ARG_OFFS_OP:
 			self.Tags[op.ArgOffsTag()].d = self.Stack.Len()
 			*pc++
+		case CALL_PRIM_OP:
+			if err := self.Tags[op.ArgOffsTag()].d.(*Prim).Call(self, pos); err != nil {
+				return err
+			}
+
+			*pc++
 		case POS_OP:
 			p := self.Tags[op.PosTag()].Data().(Pos)
 			pos = &p
@@ -99,7 +105,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			return nil
 		case TRACE_OP:
 			*pc++
-			self.Code[*pc].Trace(*pc, pos, self.Stdout)
+			self.Code[*pc].Trace(self, *pc, pos, self.Stdout)
 		default:
 			panic(fmt.Sprintf("Invalid op id: %v", id))
 		}

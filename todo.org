@@ -1,7 +1,5 @@
 * add id/int reader
 ** Add IdForm/LitForm
 * add repl
-* add + prim
-** arity: 2
 
 fun fib (n) if n > 1 + fib n -1 fib n -2 else n

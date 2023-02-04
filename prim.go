@@ -3,7 +3,7 @@ package snabl
 import (
 )
 
-type PrimBody = func(vm *Vm, pos Pos) error
+type PrimBody = func(self *Prim, vm *Vm, pos *Pos) error
 type PrimArity = uint
 
 type Prim struct {
@@ -21,6 +21,10 @@ func (self *Prim) Init(name string, arity uint, body PrimBody) *Prim {
 	self.arity = arity
 	self.body = body
 	return self
+}
+
+func (self *Prim) Call(vm *Vm, pos *Pos) error {
+	return self.body(self, vm, pos)
 }
 
 func (self *Prim) String() string {

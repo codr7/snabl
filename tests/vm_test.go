@@ -17,8 +17,9 @@ func TestEval(t *testing.T) {
 	vm := NewVm()
 	pc := vm.EmitPc()
 	vm.Code[vm.Emit()] = snabl.PushIntOp(35) 
-	vm.Code[vm.Emit()] = snabl.PushIntOp(7) 
-	vm.Code[vm.Emit()] = snabl.AddOp() 
+	vm.Code[vm.Emit()] = snabl.PushIntOp(7)
+	addTag := vm.Tag(&snabl.Abc.PrimType, snabl.Abc.AddPrim)
+	vm.Code[vm.Emit()] = snabl.CallPrimOp(addTag) 
 	vm.Code[vm.Emit()] = snabl.StopOp()
 	
 	if err := vm.Eval(&pc); err != nil {
