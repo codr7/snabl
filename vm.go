@@ -80,6 +80,13 @@ func (self *Vm) Eval(pc *Pc) error {
 			a := self.Stack.Top()
 			a.Init(&Abc.IntType, a.Data().(int) + b.Data().(int))
 			*pc++;
+		case ARG_OP:
+			v := self.Stack.items[self.Tags[op.ArgTag()].d.(ArgOffs) + op.ArgIndex()]
+			self.Stack.Push(v.t, v.d);
+			*pc++
+		case ARG_OFFS_OP:
+			self.Tags[op.ArgOffsTag()].d = self.Stack.Len()
+			*pc++
 		case POS_OP:
 			p := self.Tags[op.PosTag()].Data().(Pos)
 			pos = &p

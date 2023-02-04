@@ -20,6 +20,15 @@ func (self *IntType) Dump(val V, out io.Writer) error {
 	return err
 }
 
+type FunType struct {
+	BasicVT
+}
+
+func (self *FunType) Dump(val V, out io.Writer) error {
+	_, err := fmt.Fprintf(out, "%v", val.d.(*Fun))
+	return err
+}
+
 type PosType struct {
 	BasicVT
 }
@@ -31,12 +40,14 @@ func (self *PosType) Dump(val V, out io.Writer) error {
 
 type AbcLib struct {
 	BasicLib
+	FunType FunType
 	IntType IntType
 	PosType PosType
 }
 
 func (self *AbcLib) Init() {
 	self.BasicLib.Init("abc")
+	self.FunType.Init("Fun")
 	self.IntType.Init("Int")
 	self.PosType.Init("Pos")
 }

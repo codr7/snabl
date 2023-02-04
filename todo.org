@@ -1,6 +1,6 @@
-* add + macro
+* add + prim
 ** + 1 2
-** add Macro type
+** add Prim type
 * add reader
 * add repl
 * add functions

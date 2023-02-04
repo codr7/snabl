@@ -13,6 +13,14 @@ const (
 	OP_WIDTH = uint8((unsafe.Sizeof(Op(0)) * 8))
 	OP_ID_WIDTH = 6
 
+	ARG_TAG = OP_ID_WIDTH
+	ARG_INDEX_WIDTH = 3
+	ARG_TAG_WIDTH = OP_WIDTH - ARG_TAG - ARG_INDEX_WIDTH
+	ARG_INDEX = ARG_TAG + ARG_TAG_WIDTH
+
+	ARG_OFFS_TAG = OP_ID_WIDTH
+	ARG_OFFS_TAG_WIDTH = OP_WIDTH - ARG_OFFS_TAG
+
 	POS_TAG = OP_ID_WIDTH
 	POS_TAG_WIDTH = OP_WIDTH - POS_TAG
 
@@ -20,6 +28,8 @@ const (
 	PUSH_INT_VAL_WIDTH = OP_WIDTH - PUSH_INT_VAL
 		
 	ADD_OP = iota
+	ARG_OP
+	ARG_OFFS_OP
 	POS_OP
 	PUSH_INT_OP
 	STOP_OP
@@ -44,6 +54,10 @@ func (self Op) Trace(pc Pc, pos *Pos, out io.Writer) {
 	switch id := self.Id(); id {
 	case ADD_OP:
 		io.WriteString(out, "ADD")
+	case ARG_OP:
+		fmt.Fprintf(out, "ARG %v %v", self.ArgTag(), self.ArgIndex())
+	case ARG_OFFS_OP:
+		fmt.Fprintf(out, "ARG_OFFS %v", self.ArgOffsTag())
 	case PUSH_INT_OP:
 		fmt.Fprintf(out, "PUSH_INT %v", self.PushIntVal())
 	case STOP_OP:
@@ -61,6 +75,26 @@ func (self Op) Trace(pc Pc, pos *Pos, out io.Writer) {
 
 func AddOp() Op {
 	return Op(ADD_OP)
+}
+
+func ArgOp(tag Tag, index ArgIndex) Op {
+	return Op(ARG_OP) + Op(tag << ARG_TAG) + Op(index << ARG_INDEX)
+}
+
+func (self Op) ArgTag() Tag {
+	return OpArg[Tag](self, ARG_TAG, ARG_TAG_WIDTH)
+}
+
+func (self Op) ArgIndex() ArgIndex {
+	return OpArg[ArgIndex](self, ARG_INDEX, ARG_INDEX_WIDTH)
+}
+
+func ArgOffsOp(tag Tag) Op {
+	return Op(ARG_OFFS_OP) + Op(tag << ARG_OFFS_TAG)
+}
+
+func (self Op) ArgOffsTag() Tag {
+	return OpArg[Tag](self, ARG_OFFS_TAG, ARG_OFFS_TAG_WIDTH)
 }
 
 func PosOp(tag Tag) Op {
