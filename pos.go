@@ -1,6 +1,8 @@
 package snabl
 
-var NilPos = NewPos("n/a")
+import (
+	"fmt"
+)
 
 type Pos struct {
 	source string
@@ -16,4 +18,8 @@ func (self *Pos) Init(source string) *Pos {
 	self.line = 1
 	self.column = 1
 	return self
+}
+
+func (self *Pos) String() string {
+	return fmt.Sprintf("%v@%v:%v", self.source, self.line, self.column)
 }

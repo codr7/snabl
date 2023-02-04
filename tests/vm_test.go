@@ -5,10 +5,16 @@ import (
 	"github.com/codr7/snabl"
 )
 
-func TestEval(t *testing.T) {
+func NewVm() *snabl.Vm {
 	var vm snabl.Vm
 	vm.Init()
-	
+	vm.Debug = true
+	vm.Trace = true
+	return &vm
+}
+
+func TestEval(t *testing.T) {
+	vm := NewVm()
 	pc := vm.EmitPc()
 	vm.Code[vm.Emit()] = snabl.PushIntOp(35) 
 	vm.Code[vm.Emit()] = snabl.PushIntOp(7) 
@@ -23,7 +29,7 @@ func TestEval(t *testing.T) {
 		t.Fatalf("Expected one item: %v",  vm.Stack.String())
 	}
 
-	if v := vm.Stack.Pop(); v.Type() != &vm.AbcLib.IntType || v.Data().(int) != 42 {
+	if v := vm.Stack.Pop(); v.Type() != &snabl.Abc.IntType || v.Data().(int) != 42 {
 		t.Errorf("Expected 42: %v",  v.String())
 	}
 }

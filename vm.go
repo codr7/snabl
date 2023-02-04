@@ -6,25 +6,33 @@ import (
 	"os"
 )
 
-type Pc = uint
+type Pc = int
+type Tag = int
 
 type Vm struct {
 	Debug bool
 	Trace bool
 	
-	AbcLib AbcLib
-
 	Stdin io.Reader
 	Stdout io.Writer
-
+	
+	Tags []V
+	Env BasicEnv
+	
 	Code []Op
 	Stack Stack
 }
 
 func (self *Vm) Init() {
-	self.AbcLib.Init()
 	self.Stdin = os.Stdin
 	self.Stdout = os.Stdout
+	self.Env.Init()
+}
+
+func (self *Vm) Tag(t VT, d any) Tag {
+	i := len(self.Tags)
+	self.Tags = append(self.Tags, V{t: t, d: d})
+	return i
 }
 
 func (self *Vm) E(pos *Pos, spec string, args...interface{}) error {
@@ -51,11 +59,18 @@ func (self *Vm) Emit() Pc {
 	return self.EmitNoTrace()
 }
 
+func (self *Vm) EmitPos(pos Pos) {
+	tag := self.Tag(&Abc.PosType, pos)
+	self.Code[self.EmitNoTrace()] = PosOp(tag)
+}
+
 func (self *Vm) EmitPc() Pc {
 	return Pc(len(self.Code))
 }
 
 func (self *Vm) Eval(pc *Pc) error {
+	var pos *Pos
+	
 	for {
 		op := self.Code[*pc]
 		
@@ -63,18 +78,21 @@ func (self *Vm) Eval(pc *Pc) error {
 		case ADD_OP:
 			b := self.Stack.Pop()
 			a := self.Stack.Top()
-			a.Init(&self.AbcLib.IntType, a.Data().(int) + b.Data().(int))
+			a.Init(&Abc.IntType, a.Data().(int) + b.Data().(int))
 			*pc++;
+		case POS_OP:
+			p := self.Tags[op.PosTag()].Data().(Pos)
+			pos = &p
+			*pc++
 		case PUSH_INT_OP:
-			self.Stack.Push(&self.AbcLib.IntType, op.PushIntVal())
+			self.Stack.Push(&Abc.IntType, op.PushIntVal())
 			*pc++
 		case STOP_OP:
 			*pc++
 			return nil
 		case TRACE_OP:
 			*pc++
-			self.Code[*pc].Trace(*pc, self.Stdout)
-			*pc++
+			self.Code[*pc].Trace(*pc, pos, self.Stdout)
 		default:
 			panic(fmt.Sprintf("Invalid op id: %v", id))
 		}

@@ -1,5 +1,3 @@
-* add Env type
-* add vm.RootEnv
 * add + macro
 ** + 1 2
 ** add Macro type
@@ -9,3 +7,5 @@
 ** prefix syntax
 ** fixed arity
 ** push args on stack before call
+
+fun fib (n) if n > 1 + fib n -1 fib n -2 else n
