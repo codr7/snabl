@@ -38,11 +38,21 @@ func (self *PosType) Dump(val V, out io.Writer) error {
 	return err
 }
 
+type PrimType struct {
+	BasicVT
+}
+
+func (self *PrimType) Dump(val V, out io.Writer) error {
+	_, err := fmt.Fprintf(out, "%v", val.d.(*Prim))
+	return err
+}
+
 type AbcLib struct {
 	BasicLib
 	FunType FunType
 	IntType IntType
 	PosType PosType
+	PrimType PrimType
 }
 
 func (self *AbcLib) Init() {
@@ -50,4 +60,10 @@ func (self *AbcLib) Init() {
 	self.FunType.Init("Fun")
 	self.IntType.Init("Int")
 	self.PosType.Init("Pos")
+	self.PrimType.Init("Prim")
+
+	self.BindPrim("dump", 1, func(vm *Vm, pos Pos) error {
+		vm.Stack.Pop().Dump(vm.Stdout)
+		return nil
+	})	
 }

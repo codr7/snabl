@@ -1,11 +1,7 @@
-* add + prim
-** + 1 2
-** add Prim type
-* add reader
+* add id/int reader
+** Add IdForm/LitForm
 * add repl
-* add functions
-** prefix syntax
-** fixed arity
-** push args on stack before call
+* add + prim
+** arity: 2
 
 fun fib (n) if n > 1 + fib n -1 fib n -2 else n

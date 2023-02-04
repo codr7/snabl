@@ -1,24 +1,18 @@
 package snabl
 
-type Env interface {
-	Init()
-	Bind(id string, t VT, d any)
-	Find(id string) *V
-}
-
-type BasicEnv struct {
+type Env struct {
 	bindings map[string]V
 }
 
-func (self *BasicEnv) Init() {
+func (self *Env) Init() {
 	self.bindings = make(map[string]V)
 }
 
-func (self *BasicEnv) Bind(id string, t VT, d any) {
+func (self *Env) Bind(id string, t VT, d any) {
 	self.bindings[id] = V{t: t, d: d}
 }
 
-func (self *BasicEnv) Find(id string) *V {
+func (self *Env) Find(id string) *V {
 	v, ok := self.bindings[id]
 
 	if !ok {

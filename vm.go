@@ -17,7 +17,7 @@ type Vm struct {
 	Stdout io.Writer
 	
 	Tags []V
-	Env BasicEnv
+	Env Env
 	
 	Code []Op
 	Stack Stack
@@ -35,7 +35,7 @@ func (self *Vm) Tag(t VT, d any) Tag {
 	return i
 }
 
-func (self *Vm) E(pos *Pos, spec string, args...interface{}) error {
+func (self *Vm) E(pos Pos, spec string, args...interface{}) error {
 	err := NewE(pos, spec, args...)
 	
 	if self.Debug {
