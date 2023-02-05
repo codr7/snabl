@@ -1,3 +1,8 @@
+* add TestFunCall
+** add Call struct
+** add vm.calls []Call
+** add RetOp
+** add CallFunOp
 * add id/int reader
 ** Add IdForm/LitForm
 * add repl

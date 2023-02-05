@@ -29,13 +29,13 @@ func (self *Vm) Init() {
 	self.Env.Init()
 }
 
-func (self *Vm) Tag(t VT, d any) Tag {
+func (self *Vm) Tag(t Type, d any) Tag {
 	i := len(self.Tags)
 	self.Tags = append(self.Tags, V{t: t, d: d})
 	return i
 }
 
-func (self *Vm) E(pos *Pos, spec string, args...interface{}) error {
+func (self *Vm) E(pos *Pos, spec string, args...interface{}) *E {
 	err := NewE(pos, spec, args...)
 	
 	if self.Debug {
@@ -62,6 +62,16 @@ func (self *Vm) Emit() Pc {
 func (self *Vm) EmitPos(pos Pos) {
 	tag := self.Tag(&Abc.PosType, pos)
 	self.Code[self.EmitNoTrace()] = PosOp(tag)
+}
+
+func (self *Vm) EmitPrim(prim *Prim) {
+	tag := self.Tag(&Abc.PrimType, prim)
+	self.Code[self.Emit()] = CallPrimOp(tag) 
+}
+
+func (self *Vm) EmitString(str string) {
+	tag := self.Tag(&Abc.StringType, str)
+	self.Code[self.Emit()] = PushOp(tag) 
 }
 
 func (self *Vm) EmitPc() Pc {
@@ -96,6 +106,10 @@ func (self *Vm) Eval(pc *Pc) error {
 		case POS_OP:
 			p := self.Tags[op.PosTag()].Data().(Pos)
 			pos = &p
+			*pc++
+		case PUSH_OP:
+			v := self.Tags[op.PushTag()]
+			self.Stack.Push(v.t, v.d)
 			*pc++
 		case PUSH_INT_OP:
 			self.Stack.Push(&Abc.IntType, op.PushIntVal())

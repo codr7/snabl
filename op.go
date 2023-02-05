@@ -29,12 +29,16 @@ const (
 
 	PUSH_INT_VAL = OP_ID_WIDTH
 	PUSH_INT_VAL_WIDTH = OP_WIDTH - PUSH_INT_VAL
-		
+
+	PUSH_TAG = OP_ID_WIDTH
+	PUSH_TAG_WIDTH = OP_WIDTH - PUSH_TAG
+
 	ADD_OP = iota
 	ARG_OP
 	ARG_OFFS_OP
 	CALL_PRIM_OP
 	POS_OP
+	PUSH_OP
 	PUSH_INT_OP
 	STOP_OP
 	TRACE_OP
@@ -64,6 +68,8 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 		fmt.Fprintf(out, "ARG_OFFS %v", self.ArgOffsTag())
 	case CALL_PRIM_OP:
 		fmt.Fprintf(out, "CALL_PRIM %v", vm.Tags[self.CallPrimTag()].String())
+	case PUSH_OP:
+		fmt.Fprintf(out, "PUSH %v", vm.Tags[self.PushTag()].String())
 	case PUSH_INT_OP:
 		fmt.Fprintf(out, "PUSH_INT %v", self.PushIntVal())
 	case STOP_OP:
@@ -117,6 +123,14 @@ func PosOp(tag Tag) Op {
 
 func (self Op) PosTag() Tag {
 	return OpArg[Tag](self, POS_TAG, POS_TAG_WIDTH)
+}
+
+func PushOp(tag Tag) Op {
+	return Op(PUSH_OP) + Op(tag << PUSH_TAG)
+}
+
+func (self Op) PushTag() Tag {
+	return OpArg[Tag](self, PUSH_TAG, PUSH_TAG_WIDTH)
 }
 
 func PushIntOp(val int) Op {

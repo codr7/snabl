@@ -68,7 +68,7 @@ func (self *Stack) Pop() *V {
 	return &v
 }
 
-func (self *Stack) Push(t VT, d any) {
+func (self *Stack) Push(t Type, d any) {
 	self.items = append(self.items, V{t: t, d: d})
 }
 

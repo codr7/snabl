@@ -8,7 +8,7 @@ func (self *Env) Init() {
 	self.bindings = make(map[string]V)
 }
 
-func (self *Env) Bind(id string, t VT, d any) {
+func (self *Env) Bind(id string, t Type, d any) {
 	self.bindings[id] = V{t: t, d: d}
 }
 

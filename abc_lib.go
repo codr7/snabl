@@ -12,7 +12,7 @@ func init () {
 }
 
 type IntType struct {
-	BasicVT
+	BasicType
 }
 
 func (self *IntType) Dump(val V, out io.Writer) error {
@@ -21,16 +21,16 @@ func (self *IntType) Dump(val V, out io.Writer) error {
 }
 
 type FunType struct {
-	BasicVT
+	BasicType
 }
 
 func (self *FunType) Dump(val V, out io.Writer) error {
-	_, err := fmt.Fprintf(out, "%v", val.d.(*Fun).String())
+	_, err := io.WriteString(out, val.d.(*Fun).String())
 	return err
 }
 
 type PosType struct {
-	BasicVT
+	BasicType
 }
 
 func (self *PosType) Dump(val V, out io.Writer) error {
@@ -39,11 +39,20 @@ func (self *PosType) Dump(val V, out io.Writer) error {
 }
 
 type PrimType struct {
-	BasicVT
+	BasicType
 }
 
 func (self *PrimType) Dump(val V, out io.Writer) error {
-	_, err := fmt.Fprintf(out, "%v", val.d.(*Prim).String())
+	_, err := io.WriteString(out, val.d.(*Prim).String())
+	return err
+}
+
+type StringType struct {
+	BasicType
+}
+
+func (self *StringType) Dump(val V, out io.Writer) error {
+	_, err := io.WriteString(out, val.d.(string))
 	return err
 }
 
@@ -53,26 +62,33 @@ type AbcLib struct {
 	IntType IntType
 	PosType PosType
 	PrimType PrimType
+	StringType StringType
 
-	AddPrim, DumpPrim *Prim
+	AddPrim, DumpPrim, FailPrim Prim
 }
 
 func (self *AbcLib) Init() {
 	self.BasicLib.Init("abc")
-	self.FunType.Init("Fun")
-	self.IntType.Init("Int")
-	self.PosType.Init("Pos")
-	self.PrimType.Init("Prim")
+	
+	self.BindType(&self.FunType, "Fun")
+	self.BindType(&self.IntType, "Int")
+	self.BindType(&self.PosType, "Pos")
+	self.BindType(&self.PrimType, "Prim")
+	self.BindType(&self.StringType, "String")
 
-	self.AddPrim = self.BindPrim("+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
+	self.BindPrim(&self.AddPrim, "+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
 		a := vm.Stack.Top()
 		a.Init(&Abc.IntType, a.d.(int) + b)
 		return nil
 	})
 	
-	self.DumpPrim = self.BindPrim("dump", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+	 self.BindPrim(&self.DumpPrim, "dump", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		vm.Stack.Pop().Dump(vm.Stdout)
 		return nil
+	})
+
+	 self.BindPrim(&self.FailPrim, "fail", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		return vm.E(pos, vm.Stack.Pop().String())
 	})
 }

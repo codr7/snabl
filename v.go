@@ -6,16 +6,16 @@ import (
 )
 
 type V struct {
-	t VT
+	t Type
 	d any
 }
 
-func (self *V) Init(t VT, d any) {
+func (self *V) Init(t Type, d any) {
 	self.t = t
 	self.d = d
 }
 
-func (self *V) Type() VT {
+func (self *V) Type() Type {
 	return self.t
 }
 
@@ -31,21 +31,4 @@ func (self *V) String() string {
 	var out strings.Builder
 	self.Dump(&out)
 	return out.String()
-}
-
-type VT interface {
-	Name() string
-	Dump(val V, out io.Writer) error
-}
-
-type BasicVT struct {
-	name string
-}
-
-func (self *BasicVT) Init(name string) {
-	self.name = name
-}
-
-func (self *BasicVT) Name() string {
-	return self.name
 }
