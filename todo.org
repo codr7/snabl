@@ -1,4 +1,4 @@
-* add TestFunCall
+* add fun calls
 ** add Call struct
 ** add vm.calls []Call
 ** add RetOp

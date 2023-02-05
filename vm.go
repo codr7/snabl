@@ -91,11 +91,11 @@ func (self *Vm) Eval(pc *Pc) error {
 			a.Init(&Abc.IntType, a.Data().(int) + b.Data().(int))
 			*pc++;
 		case ARG_OP:
-			v := self.Stack.items[self.Tags[op.ArgTag()].d.(ArgOffs) + op.ArgIndex()]
+			v := self.Stack.items[self.Tags[op.ArgTag()].d.(ArgOffs) - op.ArgIndex() - 1]
 			self.Stack.Push(v.t, v.d);
 			*pc++
 		case ARG_OFFS_OP:
-			self.Tags[op.ArgOffsTag()].d = self.Stack.Len()
+			self.Tags[op.ArgOffsTag()].d = ArgOffs(self.Stack.Len())
 			*pc++
 		case CALL_PRIM_OP:
 			if err := self.Tags[op.ArgOffsTag()].d.(*Prim).Call(self, pos); err != nil {
