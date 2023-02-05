@@ -4,9 +4,6 @@ import (
 	"fmt"
 )
 
-type ArgOffs = uint
-type ArgIndex = uint
-
 type Fun struct {
 	name string
 	pc Pc
@@ -23,10 +20,10 @@ func (self *Fun) String() string {
 	return self.name
 }
 
-func (self *Fun) ArgIndex(arg string) ArgIndex {
+func (self *Fun) ArgIndex(arg string) int {
 	for i, a := range self.args {
 		if a == arg {
-			return ArgIndex(i);
+			return len(self.args) - i - 1;
 		}
 	}
 

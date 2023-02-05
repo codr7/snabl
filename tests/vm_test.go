@@ -53,12 +53,12 @@ func TestArgs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if vm.Stack.Len() != 4 {
-		t.Fatalf("Expected [7, 14, 7, 14]: %v",  vm.Stack.String())
+	if v := vm.Tags[argOffsTag].Data().(int); v != 2 {
+		t.Fatalf("Expected arg offset 2: %v", v) 
 	}
 
-	if v := vm.Tags[argOffsTag].Data().(snabl.ArgOffs); v != 2 {
-		t.Fatalf("Expected arg offset 2: %v", v) 
+	if vm.Stack.Len() != 4 {
+		t.Fatalf("Expected [7, 14, 7, 14]: %v",  vm.Stack.String())
 	}
 
 	PopInt(t, vm, 7)

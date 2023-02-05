@@ -45,7 +45,7 @@ const (
 )
 
 type OpArgType interface {
-	uint8 | uint | int 
+	uint8 | uint16 | uint | int 
 }
 
 func OpArg[T OpArgType](op Op, pos, width uint8) T {
@@ -89,7 +89,7 @@ func AddOp() Op {
 	return Op(ADD_OP)
 }
 
-func ArgOp(tag Tag, index ArgIndex) Op {
+func ArgOp(tag Tag, index int) Op {
 	return Op(ARG_OP) + Op(tag << ARG_TAG) + Op(index << ARG_INDEX)
 }
 
@@ -97,8 +97,8 @@ func (self Op) ArgTag() Tag {
 	return OpArg[Tag](self, ARG_TAG, ARG_TAG_WIDTH)
 }
 
-func (self Op) ArgIndex() ArgIndex {
-	return OpArg[ArgIndex](self, ARG_INDEX, ARG_INDEX_WIDTH)
+func (self Op) ArgIndex() int {
+	return OpArg[int](self, ARG_INDEX, ARG_INDEX_WIDTH)
 }
 
 func ArgOffsOp(tag Tag) Op {
