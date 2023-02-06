@@ -7,11 +7,13 @@ type Lib interface {
 
 type BasicLib struct {
 	Env
+	vm *Vm
 	name string
 }
 
-func (self *BasicLib) Init(name string) {
+func (self *BasicLib) Init(vm *Vm, name string) {
 	self.Env.Init()
+	self.vm = vm
 	self.name = name
 }
 
@@ -19,12 +21,17 @@ func (self *BasicLib) Name() string {
 	return self.name
 }
 
-func (self *BasicLib) BindPrim(p *Prim, name string, arity uint, body PrimBody) {
+func (self *BasicLib) BindMacro(m *Macro, name string, arity int, body MacroBody) {
+	m.Init(name, arity, body)
+	self.Bind(name, &self.vm.AbcLib.MacroType, m)
+}
+
+func (self *BasicLib) BindPrim(p *Prim, name string, arity int, body PrimBody) {
 	p.Init(name, arity, body)
-	self.Bind(name, &Abc.PrimType, p)
+	self.Bind(name, &self.vm.AbcLib.PrimType, p)
 }
 
 func (self *BasicLib) BindType(t Type, name string) {
 	t.Init(name)
-	self.Bind(name, &Abc.PrimType, t)
+	self.Bind(name, &self.vm.AbcLib.MetaType, t)
 }

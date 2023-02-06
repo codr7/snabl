@@ -1,19 +1,37 @@
 package snabl
 
 import (
-	"fmt"
 )
 
 type Fun struct {
 	name string
 	pc Pc
 	args []string
+	argOffsTag Tag
 }
 
-func (self *Fun) Init(name string, pc Pc, args...string) {
+func NewFun(vm *Vm, name string, pc Pc, args...string) *Fun {
+	return new(Fun).Init(vm, name, pc, args...)
+}
+
+func (self *Fun) Init(vm *Vm, name string, pc Pc, args...string) *Fun {
 	self.name = name
 	self.pc = pc
 	self.args = args
+
+	if len(args) > 0 {
+		self.argOffsTag = vm.Tag(&vm.AbcLib.IntType, -1)
+	}
+
+	return self
+}
+
+func (self *Fun) Pc() Pc {
+	return self.pc
+}
+
+func (self *Fun) ArgOffsTag() Tag {
+	return self.argOffsTag
 }
 
 func (self *Fun) String() string {
@@ -27,5 +45,5 @@ func (self *Fun) ArgIndex(arg string) int {
 		}
 	}
 
-	panic(fmt.Sprintf("Arg not found in %v: %v", self.name, arg))
+	return -1
 }

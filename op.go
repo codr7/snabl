@@ -21,8 +21,14 @@ const (
 	ARG_OFFS_TAG = OP_ID_WIDTH
 	ARG_OFFS_TAG_WIDTH = OP_WIDTH - ARG_OFFS_TAG
 
+	CALL_FUN_TAG = OP_ID_WIDTH
+	CALL_FUN_TAG_WIDTH = OP_WIDTH - CALL_FUN_TAG
+
 	CALL_PRIM_TAG = OP_ID_WIDTH
 	CALL_PRIM_TAG_WIDTH = OP_WIDTH - CALL_PRIM_TAG
+
+	GOTO_PC = OP_ID_WIDTH
+	GOTO_PC_WIDTH = OP_WIDTH - GOTO_PC
 
 	POS_TAG = OP_ID_WIDTH
 	POS_TAG_WIDTH = OP_WIDTH - POS_TAG
@@ -36,16 +42,19 @@ const (
 	ADD_OP = iota
 	ARG_OP
 	ARG_OFFS_OP
+	CALL_FUN_OP
 	CALL_PRIM_OP
+	GOTO_OP
 	POS_OP
 	PUSH_OP
 	PUSH_INT_OP
+	RET_OP
 	STOP_OP
 	TRACE_OP
 )
 
 type OpArgType interface {
-	uint8 | uint16 | uint | int 
+	uint8 | uint | int 
 }
 
 func OpArg[T OpArgType](op Op, pos, width uint8) T {
@@ -66,12 +75,18 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 		fmt.Fprintf(out, "ARG %v %v", self.ArgTag(), self.ArgIndex())
 	case ARG_OFFS_OP:
 		fmt.Fprintf(out, "ARG_OFFS %v", self.ArgOffsTag())
+	case CALL_FUN_OP:
+		fmt.Fprintf(out, "CALL_FUN %v", vm.Tags[self.CallFunTag()].String())
 	case CALL_PRIM_OP:
 		fmt.Fprintf(out, "CALL_PRIM %v", vm.Tags[self.CallPrimTag()].String())
+	case GOTO_OP:
+		fmt.Fprintf(out, "GOTO %v", self.GotoPc())
 	case PUSH_OP:
 		fmt.Fprintf(out, "PUSH %v", vm.Tags[self.PushTag()].String())
 	case PUSH_INT_OP:
 		fmt.Fprintf(out, "PUSH_INT %v", self.PushIntVal())
+	case RET_OP:
+		io.WriteString(out, "RET")
 	case STOP_OP:
 		io.WriteString(out, "STOP")
 	default:
@@ -101,12 +116,20 @@ func (self Op) ArgIndex() int {
 	return OpArg[int](self, ARG_INDEX, ARG_INDEX_WIDTH)
 }
 
-func ArgOffsOp(tag Tag) Op {
-	return Op(ARG_OFFS_OP) + Op(tag << ARG_OFFS_TAG)
+func ArgOffsOp(fun *Fun) Op {
+	return Op(ARG_OFFS_OP) + Op(fun.argOffsTag << ARG_OFFS_TAG)
 }
 
 func (self Op) ArgOffsTag() Tag {
 	return OpArg[Tag](self, ARG_OFFS_TAG, ARG_OFFS_TAG_WIDTH)
+}
+
+func CallFunOp(tag Tag) Op {
+	return Op(CALL_FUN_OP) + Op(tag << CALL_FUN_TAG)
+}
+
+func (self Op) CallFunTag() Tag {
+	return OpArg[Tag](self, CALL_FUN_TAG, CALL_FUN_TAG_WIDTH)
 }
 
 func CallPrimOp(tag Tag) Op {
@@ -115,6 +138,14 @@ func CallPrimOp(tag Tag) Op {
 
 func (self Op) CallPrimTag() Tag {
 	return OpArg[Tag](self, CALL_PRIM_TAG, CALL_PRIM_TAG_WIDTH)
+}
+
+func GotoOp(pc Pc) Op {
+	return Op(GOTO_OP) + Op(pc << GOTO_PC)
+}
+
+func (self Op) GotoPc() Pc {
+	return OpArg[Tag](self, GOTO_PC, GOTO_PC_WIDTH)
 }
 
 func PosOp(tag Tag) Op {
@@ -139,6 +170,10 @@ func PushIntOp(val int) Op {
 
 func (self Op) PushIntVal() int {
 	return OpArg[int](self, PUSH_INT_VAL, PUSH_INT_VAL_WIDTH)
+}
+
+func RetOp() Op {
+	return Op(RET_OP)
 }
 
 func StopOp() Op {

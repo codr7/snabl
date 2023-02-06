@@ -13,8 +13,13 @@ func NewVm() *snabl.Vm {
 	return &vm
 }
 
+func EmitPrim(vm *snabl.Vm, prim *snabl.Prim) {
+	tag := vm.Tag(&vm.AbcLib.PrimType, prim)
+	vm.Code[vm.Emit()] = snabl.CallPrimOp(tag) 
+}
+
 func PopInt(t *testing.T, vm *snabl.Vm, expected int) {
-	if actual := vm.Stack.Pop(); actual.Type() != &snabl.Abc.IntType || actual.Data().(int) != expected {
+	if actual := vm.Stack.Pop(); actual.Type() != &vm.AbcLib.IntType || actual.Data().(int) != expected {
 		t.Errorf("Expected %v: %v", expected, actual.String())
 	}
 }
@@ -24,7 +29,7 @@ func TestAdd(t *testing.T) {
 	pc := vm.EmitPc()
 	vm.Code[vm.Emit()] = snabl.PushIntOp(7) 
 	vm.Code[vm.Emit()] = snabl.PushIntOp(14)
-	vm.EmitPrim(&snabl.Abc.AddPrim)
+	EmitPrim(vm, &vm.AbcLib.AddPrim)
 	vm.Code[vm.Emit()] = snabl.StopOp()
 	
 	if err := vm.Eval(&pc); err != nil {
@@ -40,20 +45,20 @@ func TestAdd(t *testing.T) {
 
 func TestArgs(t *testing.T) {
 	vm := NewVm()
-	pc := vm.EmitPc()
+	fun := snabl.NewFun(vm, "foo", vm.EmitPc(), "bar", "baz")
 	vm.Code[vm.Emit()] = snabl.PushIntOp(7)
 	vm.Code[vm.Emit()] = snabl.PushIntOp(14)
-	argOffsTag := vm.Tag(&snabl.Abc.IntType, 0)
-	vm.Code[vm.Emit()] = snabl.ArgOffsOp(argOffsTag) 
-	vm.Code[vm.Emit()] = snabl.ArgOp(argOffsTag, 0) 
-	vm.Code[vm.Emit()] = snabl.ArgOp(argOffsTag, 1) 
+	vm.Code[vm.Emit()] = snabl.ArgOffsOp(fun) 
+	vm.Code[vm.Emit()] = snabl.ArgOp(fun.ArgOffsTag(), 0) 
+	vm.Code[vm.Emit()] = snabl.ArgOp(fun.ArgOffsTag(), 1) 
 	vm.Code[vm.Emit()] = snabl.StopOp()
+	pc := fun.Pc()
 	
 	if err := vm.Eval(&pc); err != nil {
 		t.Fatal(err)
 	}
 
-	if v := vm.Tags[argOffsTag].Data().(int); v != 2 {
+	if v := vm.Tags[fun.ArgOffsTag()].Data().(int); v != 2 {
 		t.Fatalf("Expected arg offset 2: %v", v) 
 	}
 
@@ -73,7 +78,7 @@ func TestFail(t *testing.T) {
 	vm.EmitPos(*pos)
 	msg := "failing"
 	vm.EmitString(msg)
-	vm.EmitPrim(&snabl.Abc.FailPrim)
+	EmitPrim(vm, &vm.AbcLib.FailPrim)
 	vm.Code[vm.Emit()] = snabl.StopOp()
 	
 	if err := vm.Eval(&pc); err == nil {
@@ -86,4 +91,32 @@ func TestFail(t *testing.T) {
 	if vm.Stack.Len() != 0 {
 		t.Fatalf("Expected []: %v",  vm.Stack.String())
 	}
+}
+
+func TestFun(t *testing.T) {
+	vm := NewVm()
+	pc := vm.EmitPc()
+
+	pos := snabl.NewPos("TestCall", 1, 1)
+	var args snabl.Forms
+	id := snabl.NewIdForm(*pos, "foo")
+	args.Push(id)
+	args.Push(snabl.NewGroupForm(*pos))
+	args.Push(snabl.NewLitForm(*pos, &vm.AbcLib.IntType, 42))
+
+	if err := vm.AbcLib.FunMacro.Emit(&args, vm, &vm.Env, pos); err != nil {
+		t.Fatal(err)
+	}
+	
+	if err := id.Emit(nil, vm, &vm.Env); err != nil {
+		t.Fatal(err)
+	}
+		
+	vm.Code[vm.Emit()] = snabl.StopOp()
+	
+	if err := vm.Eval(&pc); err != nil {
+		t.Fatal(err)
+	}
+
+	PopInt(t, vm, 42)
 }

@@ -23,6 +23,10 @@ func (self *V) Data() any {
 	return self.d
 }
 
+func (self *V) Emit(args *Forms, vm *Vm, env *Env, pos Pos) error {
+	return self.t.Emit(*self, args, vm, env, pos)
+}
+
 func (self *V) Dump(out io.Writer) error {
 	return self.t.Dump(*self, out)
 }

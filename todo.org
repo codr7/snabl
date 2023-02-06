@@ -1,10 +1,4 @@
-* add fun calls
-** add Call struct
-** add vm.calls []Call
-** add RetOp
-** add CallFunOp
 * add id/int reader
-** Add IdForm/LitForm
 * add repl
 
 fun fib (n) if n > 1 + fib n -1 fib n -2 else n
