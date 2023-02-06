@@ -82,14 +82,31 @@ func (self *IdForm) Init(pos Pos, name string) *IdForm {
 }
 
 func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
+	if vm.fun != nil {
+		i := vm.fun.ArgIndex(self.name)
+
+		if i > -1 {
+			vm.Code[vm.Emit()] = ArgOp(vm.fun.argOffsTag, i)
+			return nil
+		}
+	}
+	
 	found := env.Find(self.name)
 
 	if found == nil {
 		return vm.E(&self.pos, "%v?", self.name)
 	}
-
+	
 	if found.t == &vm.AbcLib.FunType {
-		tag := vm.Tag(&vm.AbcLib.FunType, found.d.(*Fun))
+		fun := found.d.(*Fun)
+
+		for i := 0; i < fun.Arity(); i++ {
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+		}
+		
+		tag := vm.Tag(&vm.AbcLib.FunType, fun)
 		vm.Code[vm.Emit()] = CallFunOp(tag)
 	} else if found.t == &vm.AbcLib.MacroType {
 		return found.d.(*Macro).Emit(args, vm, env, &self.pos)
@@ -130,10 +147,6 @@ func (self *LitForm) Dump(out io.Writer) error {
 
 type Forms struct {
 	items []Form
-}
-
-func NewForms(items []Form) *Forms {
-	return new(Forms).Init(items)
 }
 
 func (self *Forms) Pop() Form {

@@ -26,6 +26,10 @@ func (self *Fun) Init(vm *Vm, name string, pc Pc, args...string) *Fun {
 	return self
 }
 
+func (self *Fun) Arity() int {
+	return len(self.args)
+}
+
 func (self *Fun) Pc() Pc {
 	return self.pc
 }

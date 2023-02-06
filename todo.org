@@ -1,6 +1,6 @@
-* extract BasicEnv
-* join fun/args test
+* conv Dump to String
 * add id/int reader
 * add repl
-
+* add dot calls
+** shuffle args in parser
 fun fib (n) if n > 1 + fib n -1 fib n -2 else n

@@ -43,33 +43,6 @@ func TestAdd(t *testing.T) {
 	PopInt(t, vm, 21)
 }
 
-func TestArgs(t *testing.T) {
-	vm := NewVm()
-	fun := snabl.NewFun(vm, "foo", vm.EmitPc(), "bar", "baz")
-	vm.Code[vm.Emit()] = snabl.PushIntOp(7)
-	vm.Code[vm.Emit()] = snabl.PushIntOp(14)
-	vm.Code[vm.Emit()] = snabl.ArgOffsOp(fun) 
-	vm.Code[vm.Emit()] = snabl.ArgOp(fun.ArgOffsTag(), 0) 
-	vm.Code[vm.Emit()] = snabl.ArgOp(fun.ArgOffsTag(), 1) 
-	vm.Code[vm.Emit()] = snabl.StopOp()
-	pc := fun.Pc()
-	
-	if err := vm.Eval(&pc); err != nil {
-		t.Fatal(err)
-	}
-
-	if v := vm.Tags[fun.ArgOffsTag()].Data().(int); v != 2 {
-		t.Fatalf("Expected arg offset 2: %v", v) 
-	}
-
-	if vm.Stack.Len() != 4 {
-		t.Fatalf("Expected [7, 14, 7, 14]: %v",  vm.Stack.String())
-	}
-
-	PopInt(t, vm, 7)
-	PopInt(t, vm, 14)
-}
-
 func TestFail(t *testing.T) {
 	vm := NewVm()
 	vm.Debug = false
@@ -99,19 +72,22 @@ func TestFun(t *testing.T) {
 
 	pos := snabl.NewPos("TestCall", 1, 1)
 	var args snabl.Forms
-	id := snabl.NewIdForm(*pos, "foo")
-	args.Push(id)
-	args.Push(snabl.NewGroupForm(*pos))
-	args.Push(snabl.NewLitForm(*pos, &vm.AbcLib.IntType, 42))
+	fun := snabl.NewIdForm(*pos, "foo")
+	arg := snabl.NewIdForm(*pos, "x")
+	args.Push(fun)
+	args.Push(snabl.NewGroupForm(*pos, arg))
+	args.Push(arg)
 
 	if err := vm.AbcLib.FunMacro.Emit(&args, vm, vm.Env(), pos); err != nil {
 		t.Fatal(err)
 	}
+
+	args.Push(snabl.NewLitForm(*pos, &vm.AbcLib.IntType, 42))
 	
-	if err := id.Emit(nil, vm, vm.Env()); err != nil {
+	if err := fun.Emit(&args, vm, vm.Env()); err != nil {
 		t.Fatal(err)
 	}
-		
+
 	vm.Code[vm.Emit()] = snabl.StopOp()
 	
 	if err := vm.Eval(&pc); err != nil {
