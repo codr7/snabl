@@ -2,11 +2,12 @@ package snabl
 
 import (
 	"io"
+	"strings"
 )
 
 type Form interface {
 	Emit(args *Forms, vm *Vm, env Env) error
-	Dump(out io.Writer) error
+	String() string
 }
 
 type BasicForm struct {
@@ -42,28 +43,20 @@ func (self *GroupForm) Emit(args *Forms, vm *Vm, env Env) error {
 	return nil
 }
 
-func (self *GroupForm) Dump(out io.Writer) error {
-	if _, err := io.WriteString(out, "("); err != nil {
-		return err
-	}
+func (self *GroupForm) String() string {
+	var out strings.Builder
+	io.WriteString(&out, "(")
 
 	for i, f := range self.items {
 		if i > 0 {
-			if _, err := io.WriteString(out, " "); err != nil {
-				return err
-			}
+			io.WriteString(&out, " ")
 		}
 		
-		if err := f.Dump(out); err != nil {
-			return err
-		}
+		io.WriteString(&out, f.String())
 	}
 
-	if _, err := io.WriteString(out, ")"); err != nil {
-		return err
-	}
-	
-	return nil
+	io.WriteString(&out, ")")
+	return out.String()
 }
 
 type IdForm struct {
@@ -117,9 +110,8 @@ func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
 	return nil
 }
 
-func (self *IdForm) Dump(out io.Writer) error {
-	_, err := io.WriteString(out, self.name)
-	return err
+func (self *IdForm) String() string {
+	return self.name
 }
 
 type LitForm struct {
@@ -141,8 +133,8 @@ func (self *LitForm) Emit(args *Forms, vm *Vm, env Env) error {
 	return self.val.Emit(args, vm, env, self.pos)
 }
 
-func (self *LitForm) Dump(out io.Writer) error {
-	return self.val.Dump(out)
+func (self *LitForm) String() string {
+	return self.val.String()
 }
 
 type Forms struct {

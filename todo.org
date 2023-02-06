@@ -1,4 +1,3 @@
-* conv Dump to String
 * add id/int reader
 * add repl
 * add dot calls

@@ -96,7 +96,6 @@ func (self *Vm) Eval(pc *Pc) error {
 			a.Init(&self.AbcLib.IntType, a.Data().(int) + b.Data().(int))
 			*pc++;
 		case ARG_OP:
-			fmt.Printf("arg index: %v\n", op.ArgIndex())
 			v := self.Stack.items[self.Tags[op.ArgTag()].d.(int) + op.ArgIndex() - 1]
 			self.Stack.Push(v.t, v.d);
 			*pc++
