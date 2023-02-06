@@ -1,3 +1,5 @@
+* extract BasicEnv
+* join fun/args test
 * add id/int reader
 * add repl
 

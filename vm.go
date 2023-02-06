@@ -19,12 +19,12 @@ type Vm struct {
 	AbcLib AbcLib
 	
 	Tags []V
-	Env Env
 	
 	Code []Op
 	Calls []Call
 	Stack Stack
 	
+	env Env
 	fun *Fun
 }
 
@@ -32,7 +32,7 @@ func (self *Vm) Init() {
 	self.Stdin = os.Stdin
 	self.Stdout = os.Stdout
 	self.AbcLib.Init(self)
-	self.Env.Init()
+	self.env = NewEnv()
 }
 
 func (self *Vm) Tag(t Type, d any) Tag {
@@ -49,6 +49,10 @@ func (self *Vm) E(pos *Pos, spec string, args...interface{}) *E {
 	}
 
 	return err
+}
+
+func (self *Vm) Env() Env {
+	return self.env
 }
 
 func (self *Vm) EmitNoTrace() Pc {

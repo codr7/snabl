@@ -5,7 +5,7 @@ import (
 )
 
 type Form interface {
-	Emit(args *Forms, vm *Vm, env *Env) error
+	Emit(args *Forms, vm *Vm, env Env) error
 	Dump(out io.Writer) error
 }
 
@@ -32,7 +32,7 @@ func (self *GroupForm) Init(pos Pos, items...Form) *GroupForm {
 	return self
 }
 
-func (self *GroupForm) Emit(args *Forms, vm *Vm, env *Env) error {
+func (self *GroupForm) Emit(args *Forms, vm *Vm, env Env) error {
 	for _, f := range self.items {
 		if err := f.Emit(args, vm, env); err != nil {
 			return err
@@ -81,7 +81,7 @@ func (self *IdForm) Init(pos Pos, name string) *IdForm {
 	return self
 }
 
-func (self *IdForm) Emit(args *Forms, vm *Vm, env *Env) error {
+func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
 	found := env.Find(self.name)
 
 	if found == nil {
@@ -120,7 +120,7 @@ func (self *LitForm) Init(pos Pos, t Type, d any) *LitForm {
 	return self
 }
 
-func (self *LitForm) Emit(args *Forms, vm *Vm, env *Env) error {
+func (self *LitForm) Emit(args *Forms, vm *Vm, env Env) error {
 	return self.val.Emit(args, vm, env, self.pos)
 }
 

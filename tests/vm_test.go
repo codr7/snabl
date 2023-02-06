@@ -104,11 +104,11 @@ func TestFun(t *testing.T) {
 	args.Push(snabl.NewGroupForm(*pos))
 	args.Push(snabl.NewLitForm(*pos, &vm.AbcLib.IntType, 42))
 
-	if err := vm.AbcLib.FunMacro.Emit(&args, vm, &vm.Env, pos); err != nil {
+	if err := vm.AbcLib.FunMacro.Emit(&args, vm, vm.Env(), pos); err != nil {
 		t.Fatal(err)
 	}
 	
-	if err := id.Emit(nil, vm, &vm.Env); err != nil {
+	if err := id.Emit(nil, vm, vm.Env()); err != nil {
 		t.Fatal(err)
 	}
 		

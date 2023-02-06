@@ -9,7 +9,7 @@ type FunType struct {
 	BasicType
 }
 
-func (self *FunType) Emit(val V, args *Forms, vm *Vm, env *Env, pos Pos) error {	
+func (self *FunType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(*Fun)))
 	return nil
 }
@@ -23,7 +23,7 @@ type IntType struct {
 	BasicType
 }
 
-func (self *IntType) Emit(val V, args *Forms, vm *Vm, env *Env, pos Pos) error {	
+func (self *IntType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.Code[vm.Emit()] = PushIntOp(val.d.(int))
 	return nil
 }
@@ -37,7 +37,7 @@ type MacroType struct {
 	BasicType
 }
 
-func (self *MacroType) Emit(val V, args *Forms, vm *Vm, env *Env, pos Pos) error {	
+func (self *MacroType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(*Macro)))
 	return nil
 }
@@ -51,7 +51,7 @@ type MetaType struct {
 	BasicType
 }
 
-func (self *MetaType) Emit(val V, args *Forms, vm *Vm, env *Env, pos Pos) error {	
+func (self *MetaType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(Type)))
 	return nil
 }
@@ -65,7 +65,7 @@ type PosType struct {
 	BasicType
 }
 
-func (self *PosType) Emit(val V, args *Forms, vm *Vm, env *Env, pos Pos) error {	
+func (self *PosType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.EmitPos(val.d.(Pos))
 	return nil
 }
@@ -79,7 +79,7 @@ type PrimType struct {
 	BasicType
 }
 
-func (self *PrimType) Emit(val V, args *Forms, vm *Vm, env *Env, pos Pos) error {	
+func (self *PrimType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(*Prim)))
 	return nil
 }
@@ -93,7 +93,7 @@ type StringType struct {
 	BasicType
 }
 
-func (self *StringType) Emit(val V, args *Forms, vm *Vm, env *Env, pos Pos) error {	
+func (self *StringType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.EmitString(val.d.(string))
 	return nil
 }
@@ -129,7 +129,7 @@ func (self *AbcLib) Init(vm *Vm) {
 	self.BindType(&self.StringType, "String")
 
 	self.BindMacro(&self.FunMacro, "fun", 3,
-		func(self *Macro, args *Forms, vm *Vm, env *Env, pos *Pos) error {
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos *Pos) error {
 			name := args.Pop().(*IdForm).name
 			var funArgs []string
 			
@@ -145,7 +145,7 @@ func (self *AbcLib) Init(vm *Vm) {
 			}()
 
 			vm.fun = NewFun(vm, name, vm.EmitPc(), funArgs...)
-			vm.Env.Bind(name, &vm.AbcLib.FunType, vm.fun)
+			vm.env.Bind(name, &vm.AbcLib.FunType, vm.fun)
 			
 			if len(funArgs) > 0 {
 				vm.Code[vm.Emit()] = ArgOffsOp(vm.fun) 

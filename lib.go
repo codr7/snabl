@@ -6,13 +6,13 @@ type Lib interface {
 }
 
 type BasicLib struct {
-	Env
+	BasicEnv
 	vm *Vm
 	name string
 }
 
 func (self *BasicLib) Init(vm *Vm, name string) {
-	self.Env.Init()
+	self.BasicEnv.Init()
 	self.vm = vm
 	self.name = name
 }
