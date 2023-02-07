@@ -102,7 +102,7 @@ func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
 		tag := vm.Tag(&vm.AbcLib.FunType, fun)
 		vm.Code[vm.Emit()] = CallFunOp(tag)
 	} else if found.t == &vm.AbcLib.MacroType {
-		return found.d.(*Macro).Emit(args, vm, env, &self.pos)
+		return found.d.(*Macro).Emit(args, vm, env, self.pos)
 	} else {
 		return found.Emit(args, vm, env, self.pos)
 	}
@@ -116,7 +116,7 @@ func (self *IdForm) String() string {
 
 type LitForm struct {
 	BasicForm
-	val V
+	value V
 }
 
 func NewLitForm(pos Pos, t Type, d any) *LitForm {
@@ -125,16 +125,16 @@ func NewLitForm(pos Pos, t Type, d any) *LitForm {
 
 func (self *LitForm) Init(pos Pos, t Type, d any) *LitForm {
 	self.BasicForm.Init(pos)
-	self.val.Init(t, d)
+	self.value.Init(t, d)
 	return self
 }
 
 func (self *LitForm) Emit(args *Forms, vm *Vm, env Env) error {
-	return self.val.Emit(args, vm, env, self.pos)
+	return self.value.Emit(args, vm, env, self.pos)
 }
 
 func (self *LitForm) String() string {
-	return self.val.String()
+	return self.value.String()
 }
 
 type Forms struct {
@@ -156,6 +156,10 @@ func (self *Forms) Pop() Form {
 func (self *Forms) Init(items []Form) *Forms {
 	self.items = items
 	return self
+}
+
+func (self *Forms) Len() int {
+	return len(self.items)
 }
 
 func (self *Forms) Push(form Form) {

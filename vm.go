@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 )
 
 type Pc = int
@@ -102,6 +103,20 @@ func (self *Vm) Eval(pc *Pc) error {
 		case ARG_OFFS_OP:
 			self.Tags[op.ArgOffsTag()].d = self.Stack.Len()
 			*pc++
+		case BENCH_OP:
+			*pc++
+			startPc := *pc
+			startTime := time.Now()
+			
+			for i := 0; i < op.BenchReps(); i++ {
+				*pc = startPc
+				
+				if err := self.Eval(pc); err != nil {
+					return err
+				}
+			}
+			
+			self.Stack.Push(&self.AbcLib.IntType, time.Now().Sub(startTime))
 		case CALL_FUN_OP:
 			f := self.Tags[op.CallFunTag()].d.(*Fun)
 			self.Calls = append(self.Calls, Call{pos: pos, fun: f, retPc: *pc+1})

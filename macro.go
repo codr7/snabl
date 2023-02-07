@@ -3,7 +3,7 @@ package snabl
 import (
 )
 
-type MacroBody = func(self *Macro, args *Forms, vm *Vm, env Env, pos *Pos) error
+type MacroBody = func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error
 
 type Macro struct {
 	name string
@@ -22,7 +22,15 @@ func (self *Macro) Init(name string, arity int, body MacroBody) *Macro {
 	return self
 }
 
-func (self *Macro) Emit(args *Forms, vm *Vm, env Env, pos *Pos) error {
+func (self *Macro) Emit(args *Forms, vm *Vm, env Env, pos Pos) error {
+	if args.Len() < self.arity {
+		return vm.E(&pos, "Not enough arguments")
+	}
+	
+	if vm.Debug {
+		vm.EmitPos(pos)
+	}
+	
 	return self.body(self, args, vm, env, pos)
 }
 

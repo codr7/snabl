@@ -5,6 +5,88 @@ import (
 	"io"
 )
 
+type AbcLib struct {
+	BasicLib
+	FunType FunType
+	IntType IntType
+	MacroType MacroType
+	MetaType MetaType
+	PosType PosType
+	PrimType PrimType
+	StringType StringType
+
+	BenchMacro, FunMacro Macro
+	
+	AddPrim, FailPrim Prim
+}
+
+func (self *AbcLib) Init(vm *Vm) {
+	self.BasicLib.Init(vm, "abc")
+	
+	self.BindType(&self.FunType, "Fun")
+	self.BindType(&self.IntType, "Int")
+	self.BindType(&self.MacroType, "Macro")
+	self.BindType(&self.PosType, "Pos")
+	self.BindType(&self.PrimType, "Prim")
+	self.BindType(&self.StringType, "String")
+
+	self.BindMacro(&self.BenchMacro, "bench", 2,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			reps := args.Pop().(*LitForm).value.d.(int)
+			vm.Code[vm.Emit()] = BenchOp(reps)
+
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+
+			vm.Code[vm.Emit()] = StopOp()			
+			return nil
+		})
+	
+	self.BindMacro(&self.FunMacro, "fun", 3,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			name := args.Pop().(*IdForm).name
+			var funArgs []string
+			
+			for _, f := range args.Pop().(*GroupForm).items {
+				funArgs = append(funArgs, f.(*IdForm).name)
+			}
+
+			gotoPc := vm.Emit()
+			prevFun := vm.fun
+
+			defer func () {
+				vm.fun = prevFun
+			}()
+
+			vm.fun = NewFun(vm, name, vm.EmitPc(), funArgs...)
+			vm.env.Bind(name, &vm.AbcLib.FunType, vm.fun)
+			
+			if len(funArgs) > 0 {
+				vm.Code[vm.Emit()] = ArgOffsOp(vm.fun) 
+			}
+			
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+			
+			vm.Code[vm.Emit()] = RetOp()
+			vm.Code[gotoPc] = GotoOp(vm.EmitPc())
+			return nil
+		})
+
+	self.BindPrim(&self.AddPrim, "+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
+		b := vm.Stack.Pop().d.(int)
+		a := vm.Stack.Top()
+		a.Init(&vm.AbcLib.IntType, a.d.(int) + b)
+		return nil
+	})
+	
+	 self.BindPrim(&self.FailPrim, "fail", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		return vm.E(pos, vm.Stack.Pop().String())
+	})
+}
+
 type FunType struct {
 	BasicType
 }
@@ -101,78 +183,4 @@ func (self *StringType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error
 func (self *StringType) Dump(val V, out io.Writer) error {
 	_, err := io.WriteString(out, val.d.(string))
 	return err
-}
-
-type AbcLib struct {
-	BasicLib
-	FunType FunType
-	IntType IntType
-	MacroType MacroType
-	MetaType MetaType
-	PosType PosType
-	PrimType PrimType
-	StringType StringType
-
-	FunMacro Macro
-	
-	AddPrim, DumpPrim, FailPrim Prim
-}
-
-func (self *AbcLib) Init(vm *Vm) {
-	self.BasicLib.Init(vm, "abc")
-	
-	self.BindType(&self.FunType, "Fun")
-	self.BindType(&self.IntType, "Int")
-	self.BindType(&self.MacroType, "Macro")
-	self.BindType(&self.PosType, "Pos")
-	self.BindType(&self.PrimType, "Prim")
-	self.BindType(&self.StringType, "String")
-
-	self.BindMacro(&self.FunMacro, "fun", 3,
-		func(self *Macro, args *Forms, vm *Vm, env Env, pos *Pos) error {
-			name := args.Pop().(*IdForm).name
-			var funArgs []string
-			
-			for _, f := range args.Pop().(*GroupForm).items {
-				funArgs = append(funArgs, f.(*IdForm).name)
-			}
-
-			gotoPc := vm.Emit()
-			prevFun := vm.fun
-
-			defer func () {
-				vm.fun = prevFun
-			}()
-
-			vm.fun = NewFun(vm, name, vm.EmitPc(), funArgs...)
-			vm.env.Bind(name, &vm.AbcLib.FunType, vm.fun)
-			
-			if len(funArgs) > 0 {
-				vm.Code[vm.Emit()] = ArgOffsOp(vm.fun) 
-			}
-			
-			if err := args.Pop().Emit(args, vm, env); err != nil {
-				return err
-			}
-			
-			vm.Code[vm.Emit()] = RetOp()
-			vm.Code[gotoPc] = GotoOp(vm.EmitPc())
-			return nil
-		})
-
-	self.BindPrim(&self.AddPrim, "+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
-		b := vm.Stack.Pop().d.(int)
-		a := vm.Stack.Top()
-		a.Init(&vm.AbcLib.IntType, a.d.(int) + b)
-		return nil
-	})
-	
-	 self.BindPrim(&self.DumpPrim, "dump", 1, func(self *Prim, vm *Vm, pos *Pos) error {
-		vm.Stack.Pop().Dump(vm.Stdout)
-		return nil
-	})
-
-	 self.BindPrim(&self.FailPrim, "fail", 1, func(self *Prim, vm *Vm, pos *Pos) error {
-		return vm.E(pos, vm.Stack.Pop().String())
-	})
 }

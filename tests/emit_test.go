@@ -78,7 +78,7 @@ func TestFun(t *testing.T) {
 	args.Push(snabl.NewGroupForm(*pos, arg))
 	args.Push(arg)
 
-	if err := vm.AbcLib.FunMacro.Emit(&args, vm, vm.Env(), pos); err != nil {
+	if err := vm.AbcLib.FunMacro.Emit(&args, vm, vm.Env(), *pos); err != nil {
 		t.Fatal(err)
 	}
 

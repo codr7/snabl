@@ -21,6 +21,9 @@ const (
 	ARG_OFFS_TAG = OP_ID_WIDTH
 	ARG_OFFS_TAG_WIDTH = OP_WIDTH - ARG_OFFS_TAG
 
+	BENCH_REPS = OP_ID_WIDTH
+	BENCH_REPS_WIDTH = OP_WIDTH - BENCH_REPS
+
 	CALL_FUN_TAG = OP_ID_WIDTH
 	CALL_FUN_TAG_WIDTH = OP_WIDTH - CALL_FUN_TAG
 
@@ -42,6 +45,7 @@ const (
 	ADD_OP = iota
 	ARG_OP
 	ARG_OFFS_OP
+	BENCH_OP
 	CALL_FUN_OP
 	CALL_PRIM_OP
 	GOTO_OP
@@ -75,6 +79,8 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 		fmt.Fprintf(out, "ARG %v %v", self.ArgTag(), self.ArgIndex())
 	case ARG_OFFS_OP:
 		fmt.Fprintf(out, "ARG_OFFS %v", self.ArgOffsTag())
+	case BENCH_OP:
+		fmt.Fprintf(out, "BENCH %v", self.BenchReps())
 	case CALL_FUN_OP:
 		fmt.Fprintf(out, "CALL_FUN %v", vm.Tags[self.CallFunTag()].String())
 	case CALL_PRIM_OP:
@@ -122,6 +128,14 @@ func ArgOffsOp(fun *Fun) Op {
 
 func (self Op) ArgOffsTag() Tag {
 	return OpArg[Tag](self, ARG_OFFS_TAG, ARG_OFFS_TAG_WIDTH)
+}
+
+func BenchOp(reps int) Op {
+	return Op(BENCH_OP) + Op(reps << BENCH_REPS)
+}
+
+func (self Op) BenchReps() int {
+	return OpArg[int](self, BENCH_REPS, BENCH_REPS_WIDTH)
 }
 
 func CallFunOp(tag Tag) Op {
