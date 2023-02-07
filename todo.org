@@ -1,6 +1,9 @@
-* add id/int reader
-* add repl
+* add id reader
+* add group reader
+* add if macro
+* add sub prim
+* add gt/lt prims
 * add dot calls
 ** shuffle args in parser
 
-fun fib (n) if n > 1 + fib n -1 fib n -2 else n
+fun fib (n) if > n 1 + fib - n 1 fib - n 2 else n

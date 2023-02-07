@@ -31,7 +31,7 @@ func (self *V) Dump(out io.Writer) error {
 	return self.t.Dump(*self, out)
 }
 
-func (self *V) String() string {
+func (self V) String() string {
 	var out strings.Builder
 	self.Dump(&out)
 	return out.String()

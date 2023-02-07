@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+const (
+	VERSION = 1
+)
+
 type Pc = int
 type Tag = int
 

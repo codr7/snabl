@@ -7,4 +7,6 @@ import (
 func main() {
 	var vm snabl.Vm
 	vm.Init()
+
+	snabl.Repl(&vm)
 }
