@@ -1,9 +1,11 @@
-* add id reader
-* add group reader
+* import Abc into vm.Env
+** add Env.import(Lib, names...)
 * add if macro
 * add sub prim
 * add gt/lt prims
-* add dot calls
-** shuffle args in parser
 
 fun fib (n) if > n 1 + fib - n 1 fib - n 2 else n
+
+* add dot calls
+** shuffle args in parser
+   

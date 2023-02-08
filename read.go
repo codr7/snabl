@@ -3,6 +3,7 @@ package snabl
 import (
 	"bufio"
 	"io"
+	"strings"
 	"unicode"
 )
 
@@ -36,14 +37,83 @@ NEXT:
 	case ' ':
 		pos.column++
 		goto NEXT
+	case '(':
+		pos.column++
+		return ReadGroup(vm, pos, in, out)
 	default:
 		if unicode.IsDigit(c) {
 			in.UnreadRune()
 			return ReadInt(vm, pos, in, out)
+		} else if unicode.IsGraphic(c) {
+			in.UnreadRune()
+			return ReadId(vm, pos, in, out)			
 		}
 	}
 
 	return vm.E(pos, "%v?", c)
+}
+
+func ReadGroup(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+	fpos := *pos;
+	var forms Forms
+
+	for {
+		c, _, err := in.ReadRune()
+		
+		if err != nil {
+			if err == io.EOF {
+				return vm.E(pos, "Open group")
+			}
+			
+			return err
+		}
+
+		if c == ')' {
+			pos.column++
+			break
+		} else {
+			in.UnreadRune()
+		}
+
+		if err := ReadForm(vm, pos, in, out); err != nil {
+			if err == io.EOF {
+				return vm.E(pos, "Open group")
+			}
+
+			return err
+		}
+	}
+
+	out.Push(NewGroupForm(fpos, forms.items...))
+	return nil
+}
+
+func ReadId(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+	var buffer strings.Builder
+	fpos := *pos
+	
+	for {
+		c, _, err := in.ReadRune()
+		
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			
+			return err
+		}
+
+		if c == '(' || c == ')' || !unicode.IsGraphic(c) {
+			in.UnreadRune()
+			break
+		}
+		
+		buffer.WriteRune(c)
+		pos.column++
+	}
+
+	out.Push(NewIdForm(fpos, buffer.String()))
+	return nil
 }
 
 func ReadInt(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
