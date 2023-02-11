@@ -2,6 +2,7 @@ package snabl
 
 import (
 	"bufio"
+	//"fmt"
 	"io"
 	"strings"
 	"unicode"
@@ -44,7 +45,7 @@ NEXT:
 		if unicode.IsDigit(c) {
 			in.UnreadRune()
 			return ReadInt(vm, pos, in, out)
-		} else if unicode.IsGraphic(c) {
+		} else if !unicode.IsSpace(c) && !unicode.IsControl(c) {
 			in.UnreadRune()
 			return ReadId(vm, pos, in, out)			
 		}
@@ -75,7 +76,7 @@ func ReadGroup(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 			in.UnreadRune()
 		}
 
-		if err := ReadForm(vm, pos, in, out); err != nil {
+		if err := ReadForm(vm, pos, in, &forms); err != nil {
 			if err == io.EOF {
 				return vm.E(pos, "Open group")
 			}
@@ -103,7 +104,7 @@ func ReadId(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 			return err
 		}
 
-		if c == '(' || c == ')' || !unicode.IsGraphic(c) {
+		if c == '(' || c == ')' || unicode.IsSpace(c) || unicode.IsControl(c) {
 			in.UnreadRune()
 			break
 		}

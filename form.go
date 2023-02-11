@@ -1,6 +1,7 @@
 package snabl
 
 import (
+	//"fmt"
 	"io"
 	"strings"
 )
@@ -79,7 +80,7 @@ func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
 		i := vm.fun.ArgIndex(self.name)
 
 		if i > -1 {
-			vm.Code[vm.Emit()] = ArgOp(vm.fun.argOffsTag, i)
+			vm.Code[vm.Emit()] = ArgOp(i)
 			return nil
 		}
 	}
@@ -99,10 +100,19 @@ func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
 			}
 		}
 		
-		tag := vm.Tag(&vm.AbcLib.FunType, fun)
-		vm.Code[vm.Emit()] = CallFunOp(tag)
+		vm.Code[vm.Emit()] = CallFunOp(fun)
 	} else if found.t == &vm.AbcLib.MacroType {
 		return found.d.(*Macro).Emit(args, vm, env, self.pos)
+	} else if found.t == &vm.AbcLib.PrimType {
+		prim := found.d.(*Prim)
+
+		for i := 0; i < prim.arity; i++ {
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+		}
+
+		vm.Code[vm.Emit()] = CallPrimOp(prim)
 	} else {
 		return found.Emit(args, vm, env, self.pos)
 	}
@@ -139,6 +149,16 @@ func (self *LitForm) String() string {
 
 type Forms struct {
 	items []Form
+}
+
+func (self *Forms) Top() Form {
+	i := len(self.items)
+	
+	if i == 0 {
+		return nil
+	}
+
+	return self.items[0]
 }
 
 func (self *Forms) Pop() Form {

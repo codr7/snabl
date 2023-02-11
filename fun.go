@@ -4,10 +4,10 @@ import (
 )
 
 type Fun struct {
+	tag Tag
 	name string
 	pc Pc
 	args []string
-	argOffsTag Tag
 }
 
 func NewFun(vm *Vm, name string, pc Pc, args...string) *Fun {
@@ -15,27 +15,15 @@ func NewFun(vm *Vm, name string, pc Pc, args...string) *Fun {
 }
 
 func (self *Fun) Init(vm *Vm, name string, pc Pc, args...string) *Fun {
+	self.tag = vm.Tag(&vm.AbcLib.FunType, self)
 	self.name = name
 	self.pc = pc
 	self.args = args
-
-	if len(args) > 0 {
-		self.argOffsTag = vm.Tag(&vm.AbcLib.IntType, -1)
-	}
-
 	return self
 }
 
 func (self *Fun) Arity() int {
 	return len(self.args)
-}
-
-func (self *Fun) Pc() Pc {
-	return self.pc
-}
-
-func (self *Fun) ArgOffsTag() Tag {
-	return self.argOffsTag
 }
 
 func (self *Fun) String() string {
@@ -45,7 +33,7 @@ func (self *Fun) String() string {
 func (self *Fun) ArgIndex(arg string) int {
 	for i, a := range self.args {
 		if a == arg {
-			return len(self.args) - i - 1;
+			return i
 		}
 	}
 

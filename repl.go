@@ -55,7 +55,7 @@ func Repl(vm *Vm) {
 			}
 			
 			if vm.Stack.Len() > 0 {
-				fmt.Fprintln(vm.Stdout, *vm.Stack.Top())
+				fmt.Fprintln(vm.Stdout, *vm.Stack.Top(0))
 				vm.Stack.Clear()
 			}
 		} else if _, err := fmt.Fprintln(&buffer, line); err != nil {

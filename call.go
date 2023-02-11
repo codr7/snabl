@@ -8,10 +8,11 @@ import (
 type Call struct {
 	pos *Pos
 	fun *Fun
+	args []V
 	retPc Pc
 }
 
-func (self Call) String() {
+func (self Call) String() string {
 	var out strings.Builder
 
 	if self.pos != nil {
@@ -19,4 +20,5 @@ func (self Call) String() {
 	}
 
 	out.WriteString(self.fun.String())
+	return out.String()
 }

@@ -7,6 +7,7 @@ import (
 type Type interface {
 	Init(name string)
 	Name() string
+	Bool(val V) bool
 	Dump(val V, out io.Writer) error
 	Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error
 }
@@ -21,4 +22,8 @@ func (self *BasicType) Init(name string) {
 
 func (self *BasicType) Name() string {
 	return self.name
+}
+
+func (self *BasicType) Bool(val V) bool {
+	return true
 }

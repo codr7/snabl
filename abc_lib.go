@@ -7,6 +7,7 @@ import (
 
 type AbcLib struct {
 	BasicLib
+	BoolType BoolType
 	FunType FunType
 	IntType IntType
 	MacroType MacroType
@@ -17,12 +18,13 @@ type AbcLib struct {
 
 	BenchMacro, FunMacro Macro
 	
-	AddPrim, FailPrim Prim
+	AddPrim, FailPrim, GtPrim, SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
 	self.BasicLib.Init(vm, "abc")
 	
+	self.BindType(&self.BoolType, "Bool")
 	self.BindType(&self.FunType, "Fun")
 	self.BindType(&self.IntType, "Int")
 	self.BindType(&self.MacroType, "Macro")
@@ -47,7 +49,7 @@ func (self *AbcLib) Init(vm *Vm) {
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
 			name := args.Pop().(*IdForm).name
 			var funArgs []string
-			
+
 			for _, f := range args.Pop().(*GroupForm).items {
 				funArgs = append(funArgs, f.(*IdForm).name)
 			}
@@ -62,10 +64,6 @@ func (self *AbcLib) Init(vm *Vm) {
 			vm.fun = NewFun(vm, name, vm.EmitPc(), funArgs...)
 			vm.env.Bind(name, &vm.AbcLib.FunType, vm.fun)
 			
-			if len(funArgs) > 0 {
-				vm.Code[vm.Emit()] = ArgOffsOp(vm.fun) 
-			}
-			
 			if err := args.Pop().Emit(args, vm, env); err != nil {
 				return err
 			}
@@ -75,16 +73,85 @@ func (self *AbcLib) Init(vm *Vm) {
 			return nil
 		})
 
+	self.BindMacro(&self.BenchMacro, "if", 2,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+
+			ifPc := vm.Emit()
+			
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+
+			elsePc := vm.EmitPc()
+			
+			if f, ok := args.Top().(*IdForm); f != nil && ok && f.name == "else" {
+				args.Pop()
+				gotoPc := vm.Emit()
+				elsePc = vm.EmitPc()
+				
+				if err := args.Pop().Emit(args, vm, env); err != nil {
+					return err
+				}
+
+				vm.Code[gotoPc] = GotoOp(vm.EmitPc())
+			}
+			
+			vm.Code[ifPc] = IfOp(elsePc)
+			return nil
+		})
+	
 	self.BindPrim(&self.AddPrim, "+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
-		a := vm.Stack.Top()
-		a.Init(&vm.AbcLib.IntType, a.d.(int) + b)
+		a := vm.Stack.Pop().d.(int)
+		vm.Stack.Push(V{&vm.AbcLib.IntType, a + b})
 		return nil
 	})
 	
 	 self.BindPrim(&self.FailPrim, "fail", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		return vm.E(pos, vm.Stack.Pop().String())
 	})
+
+	self.BindPrim(&self.GtPrim, ">", 2, func(self *Prim, vm *Vm, pos *Pos) error {
+		b := vm.Stack.Pop().d.(int)
+		a := vm.Stack.Pop().d.(int)
+		vm.Stack.Push(V{&vm.AbcLib.BoolType, a > b})
+		return nil
+	})
+
+	self.BindPrim(&self.SubPrim, "-", 2, func(self *Prim, vm *Vm, pos *Pos) error {
+		b := vm.Stack.Pop().d.(int)
+		a := vm.Stack.Pop().d.(int)
+		vm.Stack.Push(V{&vm.AbcLib.IntType, a - b})
+		return nil
+	})
+}
+
+type BoolType struct {
+	BasicType
+}
+
+func (self *BoolType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
+	vm.Code[vm.Emit()] = PushBoolOp(val.d.(bool))
+	return nil
+}
+
+func (self *BoolType) Bool(val V) bool {
+	return val.d.(bool)
+}
+
+func (self *BoolType) Dump(val V, out io.Writer) error {
+	var err error
+	
+	if val.d.(bool) {
+		_, err = fmt.Fprint(out, "T")
+	} else {
+		_, err = fmt.Fprint(out, "F")
+	}
+	
+	return err
 }
 
 type FunType struct {

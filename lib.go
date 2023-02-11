@@ -27,7 +27,7 @@ func (self *BasicLib) BindMacro(m *Macro, name string, arity int, body MacroBody
 }
 
 func (self *BasicLib) BindPrim(p *Prim, name string, arity int, body PrimBody) {
-	p.Init(name, arity, body)
+	p.Init(self.vm, name, arity, body)
 	self.Bind(name, &self.vm.AbcLib.PrimType, p)
 }
 

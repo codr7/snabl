@@ -3,6 +3,8 @@ package snabl
 type Env interface {
 	Bind(id string, t Type, d any)
 	Find(id string) *V
+	Each(cb func (k string, v V))
+	Import(source Env, vm *Vm, pos *Pos, names...string) error
 }
 
 type BasicEnv struct {
@@ -30,4 +32,30 @@ func (self *BasicEnv) Find(id string) *V {
 	}
 
 	return &v
+}
+
+func (self *BasicEnv) Each(cb func (k string, v V)) {
+	for k, v := range self.bindings {
+		cb(k, v)
+	}
+}
+
+func (self *BasicEnv) Import(source Env, vm *Vm, pos *Pos, names...string) error {
+	if len(names) == 0 {
+		source.Each(func (k string, v V) {
+			self.Bind(k, v.t, v.d)
+		})
+	} else {
+		for _, k := range names {
+			v := source.Find(k)
+
+			if v == nil {
+				return vm.E(pos, "%v?", k) 
+			}
+
+			self.Bind(k, v.t, v.d)
+		}
+	}
+
+	return nil
 }

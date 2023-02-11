@@ -1,11 +1,12 @@
-* import Abc into vm.Env
-** add Env.import(Lib, names...)
-* add if macro
-* add sub prim
-* add gt/lt prims
-
-fun fib (n) if > n 1 + fib - n 1 fib - n 2 else n
-
+* add test macro
+test result body
+* add load prim
 * add dot calls
 ** shuffle args in parser
-   
+* add tail fib
+* add cobra cli
+
+fun foo (x) x
+42 foo
+
+fun fib (n) if > n 1 + fib - n 1 fib - n 2 else n

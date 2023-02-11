@@ -26,8 +26,8 @@ type Vm struct {
 	Tags []V
 	
 	Code []Op
-	Calls []Call
-	Stack Stack
+	Stack Deque[V]
+	Calls Deque[Call]
 	
 	env Env
 	fun *Fun
@@ -93,19 +93,11 @@ func (self *Vm) Eval(pc *Pc) error {
 	
 	for {
 		op := self.Code[*pc]
-		
+
 		switch id := op.Id(); id {
-		case ADD_OP:
-			b := self.Stack.Pop()
-			a := self.Stack.Top()
-			a.Init(&self.AbcLib.IntType, a.Data().(int) + b.Data().(int))
-			*pc++;
 		case ARG_OP:
-			v := self.Stack.items[self.Tags[op.ArgTag()].d.(int) + op.ArgIndex() - 1]
-			self.Stack.Push(v.t, v.d);
-			*pc++
-		case ARG_OFFS_OP:
-			self.Tags[op.ArgOffsTag()].d = self.Stack.Len()
+			v := self.Calls.Top(0).args[op.ArgIndex()]
+			self.Stack.Push(v)
 			*pc++
 		case BENCH_OP:
 			*pc++
@@ -118,31 +110,46 @@ func (self *Vm) Eval(pc *Pc) error {
 				if err := self.Eval(pc); err != nil {
 					return err
 				}
+
+				self.Stack.Clear()
 			}
 			
-			self.Stack.Push(&self.AbcLib.IntType, time.Now().Sub(startTime))
+			self.Stack.Push(V{t: &self.AbcLib.IntType, d: time.Now().Sub(startTime)})
 		case CALL_FUN_OP:
 			f := self.Tags[op.CallFunTag()].d.(*Fun)
-			self.Calls = append(self.Calls, Call{pos: pos, fun: f, retPc: *pc+1})
+			
+			self.Calls.Push(Call{
+				pos: pos, fun: f, args: self.Stack.Drop(f.Arity()), retPc: *pc+1})
+			
 			*pc = f.pc
 		case CALL_PRIM_OP:
-			if err := self.Tags[op.ArgOffsTag()].d.(*Prim).Call(self, pos); err != nil {
+			p := self.Tags[op.CallPrimTag()].d.(*Prim)
+			
+			if err := p.Call(self, pos); err != nil {
 				return err
 			}
 
 			*pc++
 		case GOTO_OP:
 			*pc = op.GotoPc()
+		case IF_OP:
+			if self.Stack.Pop().Bool() {
+				*pc++
+			} else {
+				*pc = op.IfElsePc()
+			}
 		case POS_OP:
 			p := self.Tags[op.PosTag()].Data().(Pos)
 			pos = &p
 			*pc++
 		case PUSH_OP:
-			v := self.Tags[op.PushTag()]
-			self.Stack.Push(v.t, v.d)
+			self.Stack.Push(self.Tags[op.PushTag()])
+			*pc++
+		case PUSH_BOOL_OP:
+			self.Stack.Push(V{t: &self.AbcLib.BoolType, d: op.PushBoolVal()})
 			*pc++
 		case PUSH_INT_OP:
-			self.Stack.Push(&self.AbcLib.IntType, op.PushIntVal())
+			self.Stack.Push(V{t: &self.AbcLib.IntType, d: op.PushIntVal()})
 			*pc++
 		case STOP_OP:
 			*pc++
@@ -151,10 +158,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			*pc++
 			self.Code[*pc].Trace(self, *pc, pos, self.Stdout)
 		case RET_OP:
-			i := len(self.Calls)
-			c := self.Calls[i-1]
-			self.Calls = self.Calls[:i-1]
-			*pc = c.retPc
+			*pc = self.Calls.Pop().retPc
 		default:
 			panic(fmt.Sprintf("Invalid op id: %v", id))
 		}
