@@ -85,7 +85,8 @@ func (self *Vm) Load(path string, eval bool) error {
 	}()
 	
 	self.Path = filepath.Dir(p)
-
+	self.Fuse(pc)
+	
 	if err := self.Eval(&pc); err != nil {
 		return err
 	}
@@ -184,6 +185,10 @@ func (self *Vm) Eval(pc *Pc) error {
 		case CLEAR_OP:
 			self.Stack.Clear()
 			*pc++
+		case DEC_OP:
+			v := self.Stack.Top(0)
+			v.Init(v.t, v.d.(int) - op.DecDelta())
+			*pc++
 		case GOTO_OP:
 			*pc = op.GotoPc()
 		case IF_OP:
@@ -192,6 +197,8 @@ func (self *Vm) Eval(pc *Pc) error {
 			} else {
 				*pc = op.IfElsePc()
 			}
+		case NOP:
+			*pc++
 		case POS_OP:
 			p := self.Tags[op.PosTag()].Data().(Pos)
 			pos = &p

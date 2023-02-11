@@ -45,6 +45,7 @@ func Repl(vm *Vm) {
 			}
 
 			vm.Code[vm.Emit()] = StopOp()
+			vm.Fuse(pc)
 			
 			if err := vm.Eval(&pc); err != nil {
 				fmt.Fprintln(vm.Stdout, err)

@@ -23,6 +23,9 @@ const (
 	CALL_PRIM_TAG = OP_ID_WIDTH
 	CALL_PRIM_TAG_WIDTH = OP_WIDTH - CALL_PRIM_TAG
 
+	DEC_DELTA = OP_ID_WIDTH
+	DEC_DELTA_WIDTH = OP_WIDTH - DEC_DELTA
+
 	GOTO_PC = OP_ID_WIDTH
 	GOTO_PC_WIDTH = OP_WIDTH - GOTO_PC
 
@@ -48,8 +51,10 @@ const (
 	CALL_FUN_OP
 	CALL_PRIM_OP
 	CLEAR_OP
+	DEC_OP
 	GOTO_OP
 	IF_OP
+	NOP
 	POS_OP
 	PUSH_OP
 	PUSH_BOOL_OP
@@ -88,10 +93,14 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 		fmt.Fprintf(out, "CALL_PRIM %v", vm.Tags[self.CallPrimTag()].String())
 	case CLEAR_OP:
 		io.WriteString(out, "CLEAR")
+	case DEC_OP:
+		fmt.Fprintf(out, "DEC %v", self.DecDelta())
 	case GOTO_OP:
 		fmt.Fprintf(out, "GOTO %v", self.GotoPc())
 	case IF_OP:
 		fmt.Fprintf(out, "IF %v", self.IfElsePc())
+	case NOP:
+		io.WriteString(out, "NOP")
 	case PUSH_OP:
 		fmt.Fprintf(out, "PUSH %v", vm.Tags[self.PushVal()].String())
 	case PUSH_BOOL_OP:
@@ -152,6 +161,14 @@ func ClearOp() Op {
 	return Op(CLEAR_OP)
 }
 
+func DecOp(delta int) Op {
+	return Op(DEC_OP) + Op(delta << DEC_DELTA)
+}
+
+func (self Op) DecDelta() int {
+	return OpArg[int](self, DEC_DELTA, DEC_DELTA_WIDTH)
+}
+
 func GotoOp(pc Pc) Op {
 	return Op(GOTO_OP) + Op(pc << GOTO_PC)
 }
@@ -166,6 +183,10 @@ func IfOp(elsePc Pc) Op {
 
 func (self Op) IfElsePc() Pc {
 	return OpArg[Pc](self, IF_ELSE_PC, IF_ELSE_PC_WIDTH)
+}
+
+func NOp() Op {
+	return Op(NOP)
 }
 
 func PosOp(tag Tag) Op {
