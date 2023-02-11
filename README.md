@@ -39,7 +39,7 @@ repl@1:9
 ```
 
 ## Testing
-`test expected exp` evaluates `exp` and compares the result with `expected`.
+`test expected expr` evaluates `expr` and compares the result with `expected`.
 
 ```
   load "test/all.sl"
@@ -48,10 +48,10 @@ Testing T...OK
 Testing F...OK
 Testing 3...OK
 Testing 1...OK
-...
+```
 
 ## Benchmarking
-`bench n expr` evaluates `exp` `n` times and returns elapsed time.
+`bench n expr` evaluates `expr` `n` times and returns elapsed time.
 
 ```
   load "bench/fib.sl"
