@@ -1,18 +1,5 @@
-* add tail calls
-** add vm.Fuse(pc)
-** add NOp
-** fuse callfun ret and callfun goto ret
 * add dot calls
 ** shuffle args in parser
-** move fun/prim/macro arg shuffling to reader?
-*** add Callee with Arity()
-
-defun fib(n) 
-  if n .> 1 fib n .- 1 .+  fib n .- 2 else n
-
-defun fibt(n a b)
-  if n .> 1 fibt n .- 1 b a .+ b else if n .= 0 a else b
-
 * add cobra cli
 * add def prim
 ** emit/eval arg at emit time
