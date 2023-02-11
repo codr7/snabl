@@ -21,7 +21,7 @@ func (self *Vm) FuseDec(startPc Pc) int {
 			prevOp.Id() == PUSH_INT_OP &&
 			op.Id() == CALL_PRIM_OP &&
 			op.CallPrimTag() == self.AbcLib.SubPrim.tag {
-			fmt.Fprintf(self.Stdout, "%v Fusing PUSH_INT CALL_PRIM -> DEC\n", pc);
+			fmt.Fprintf(self.Stdout, "%v Fusing PUSH_INT CALL_PRIM(-) -> DEC\n", pc);
 			*prevOp = DecOp(prevOp.PushIntVal())
 			*op = NOp()
 			count++
