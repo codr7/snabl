@@ -7,7 +7,7 @@
 ** move fun/prim/macro arg shuffling to reader?
 *** add Callee with Arity()
 
-defun fib (n) if n .> 1 fib n .- 1 .+  fib n .- 2 else n
+defun fib(n) if n .> 1 fib n .- 1 .+  fib n .- 2 else n
 
 * add tail fib
 * add cobra cli
