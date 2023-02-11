@@ -8,11 +8,9 @@ import (
 	"unicode"
 )
 
-type Reader = func(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error
-
-func ReadForms(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+func (self *Vm) ReadForms(pos *Pos, in *bufio.Reader, out *Forms) error {
 	for {
-		if err := ReadForm(vm, pos, in, out); err != nil {
+		if err := self.ReadForm(pos, in, out); err != nil {
 			if err == io.EOF {
 				return nil
 			}
@@ -22,7 +20,7 @@ func ReadForms(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 	}
 }
 
-func ReadForm(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+func (self *Vm) ReadForm(pos *Pos, in *bufio.Reader, out *Forms) error {
 NEXT:
 	c, _, err := in.ReadRune()
 	
@@ -40,24 +38,24 @@ NEXT:
 		goto NEXT
 	case '(':
 		pos.column++
-		return ReadGroup(vm, pos, in, out)
+		return self.ReadGroup(pos, in, out)
 	case '"':
 		pos.column++
-		return ReadString(vm, pos, in, out)
+		return self.ReadString(pos, in, out)
 	default:
 		if unicode.IsDigit(c) {
 			in.UnreadRune()
-			return ReadInt(vm, pos, in, out)
+			return self.ReadInt(pos, in, out)
 		} else if !unicode.IsSpace(c) && !unicode.IsControl(c) {
 			in.UnreadRune()
-			return ReadId(vm, pos, in, out)			
+			return self.ReadId(pos, in, out)			
 		}
 	}
 
-	return vm.E(pos, "%v?", c)
+	return self.E(pos, "%v?", c)
 }
 
-func ReadGroup(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+func (self *Vm) ReadGroup(pos *Pos, in *bufio.Reader, out *Forms) error {
 	fpos := *pos;
 	var forms Forms
 
@@ -66,7 +64,7 @@ func ReadGroup(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 		
 		if err != nil {
 			if err == io.EOF {
-				return vm.E(pos, "Open group")
+				return self.E(pos, "Open group")
 			}
 			
 			return err
@@ -79,9 +77,9 @@ func ReadGroup(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 			in.UnreadRune()
 		}
 
-		if err := ReadForm(vm, pos, in, &forms); err != nil {
+		if err := self.ReadForm(pos, in, &forms); err != nil {
 			if err == io.EOF {
-				return vm.E(pos, "Open group")
+				return self.E(pos, "Open group")
 			}
 
 			return err
@@ -92,7 +90,7 @@ func ReadGroup(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 	return nil
 }
 
-func ReadId(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+func (self *Vm) ReadId(pos *Pos, in *bufio.Reader, out *Forms) error {
 	var buffer strings.Builder
 	fpos := *pos
 	
@@ -120,7 +118,7 @@ func ReadId(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 	return nil
 }
 
-func ReadInt(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+func (self *Vm) ReadInt(pos *Pos, in *bufio.Reader, out *Forms) error {
 	var v int
 	base := 10
 	fpos := *pos
@@ -157,11 +155,11 @@ func ReadInt(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 		pos.column++
 	}
 	
-	out.Push(NewLitForm(fpos, &vm.AbcLib.IntType, v))
+	out.Push(NewLitForm(fpos, &self.AbcLib.IntType, v))
 	return nil
 }
 
-func ReadString(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+func (self *Vm) ReadString(pos *Pos, in *bufio.Reader, out *Forms) error {
 	fpos := *pos
 	var buf strings.Builder
 	
@@ -171,7 +169,7 @@ func ReadString(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 		
 		if err != nil {
 			if err == io.EOF {
-				return vm.E(pos, "Open string")
+				return self.E(pos, "Open string")
 			}
 		
 			return err
@@ -185,6 +183,6 @@ func ReadString(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 		pos.column++
 	}
 	
-	out.Push(NewLitForm(fpos, &vm.AbcLib.StringType, buf.String()))
+	out.Push(NewLitForm(fpos, &self.AbcLib.StringType, buf.String()))
 	return nil
 }

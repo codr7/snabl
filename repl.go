@@ -30,7 +30,7 @@ func Repl(vm *Vm) {
 			pos := NewPos("repl", 1, 1)
 			var forms Forms
 			
-			if err := ReadForms(vm, pos, bufio.NewReader(&buffer), &forms); err != nil {
+			if err := vm.ReadForms(pos, bufio.NewReader(&buffer), &forms); err != nil {
 				fmt.Fprintln(vm.Stdout, err)
 				buffer.Reset()
 				goto NEXT

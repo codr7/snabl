@@ -4,14 +4,11 @@ import (
 	"fmt"
 )
 
-type Fuse = func (pc Pc) int
-
 func (self *Vm) Fuse(startPc Pc) {
 	for self.FuseDec(startPc, nil) +
 		self.FuseGoto(startPc, nil) +
 		self.FuseInc(startPc, nil) +
-		self.FuseNop(startPc, nil) > 0 {
-	}
+		self.FuseNop(startPc, nil) > 0 {}
 }
 
 func (self *Vm) FuseDec(startPc Pc, prevOp *Op) int {
