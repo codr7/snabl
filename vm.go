@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	VERSION = 2
+	VERSION = 3
 )
 
 type Pc = int

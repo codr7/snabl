@@ -19,7 +19,7 @@ type AbcLib struct {
 	StringType StringType
 	TimeType TimeType
 
-	BenchMacro, DebugMacro, FunMacro, IfMacro, TestMacro, TraceMacro Macro
+	BenchMacro, DebugMacro, DefunMacro, IfMacro, TestMacro, TraceMacro Macro
 	
 	AddPrim, EqPrim, FailPrim, GtPrim, LoadPrim, PosPrim, SayPrim, SubPrim Prim
 }
@@ -55,7 +55,7 @@ func (self *AbcLib) Init(vm *Vm) {
 			return nil
 		})
 	
-	self.BindMacro(&self.FunMacro, "fun", 3,
+	self.BindMacro(&self.DefunMacro, "defun", 3,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
 			name := args.Pop().(*IdForm).name
 			var funArgs []string

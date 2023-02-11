@@ -35,6 +35,6 @@ func (self *E) Error() string {
 		fmt.Fprintf(&msg, "%v ", self.pos)
 	}
 	
-	msg.WriteString(self.msg)
+	fmt.Fprintf(&msg, "Error: %v", self.msg)
 	return msg.String()
 }

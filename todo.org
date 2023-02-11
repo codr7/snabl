@@ -1,3 +1,5 @@
+* convert pos prim to macro
+** add to readme/debug
 * unroll bench loop
 ** add ClearOp
 * add dot calls
@@ -5,7 +7,7 @@
 ** move fun/prim/macro arg shuffling to reader?
 *** add Callee with Arity()
 
-fun fib (n) if n .> 1 fib n .- 1 .+  fib n .- 2 else n
+defun fib (n) if n .> 1 fib n .- 1 .+  fib n .- 2 else n
 
 * add tail fib
 * add cobra cli
