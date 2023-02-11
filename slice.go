@@ -6,24 +6,24 @@ import (
 	"strings"
 )
 
-type Deque [T fmt.Stringer] struct {
+type Slice [T fmt.Stringer] struct {
 	items []T
 }
 
-func NewDeque[T fmt.Stringer](items []T) *Deque[T] {
-	return new(Deque[T]).Init(items)
+func NewSlice[T fmt.Stringer](items []T) *Slice[T] {
+	return new(Slice[T]).Init(items)
 }
 
-func (self *Deque[T]) Init(items []T) *Deque[T] {
+func (self *Slice[T]) Init(items []T) *Slice[T] {
 	self.items = items
 	return self
 }
 
-func (self *Deque[T]) Clear() {
+func (self *Slice[T]) Clear() {
 	self.items = nil
 }
 
-func (self Deque[T]) Dump(out io.Writer) error {
+func (self Slice[T]) Dump(out io.Writer) error {
 	if _, err := io.WriteString(out, "["); err != nil {
 		return err
 	}
@@ -43,11 +43,11 @@ func (self Deque[T]) Dump(out io.Writer) error {
 	return nil
 }
 
-func (self Deque[T]) Len() int {
+func (self Slice[T]) Len() int {
 	return len(self.items)
 }
 
-func (self Deque[T]) Top(i int) *T {
+func (self Slice[T]) Top(i int) *T {
 	n := len(self.items) - 1
 	
 	if n < i {
@@ -57,7 +57,7 @@ func (self Deque[T]) Top(i int) *T {
 	return &self.items[n-i]
 }
 
-func (self *Deque[T]) Pop() *T {
+func (self *Slice[T]) Pop() *T {
 	i := len(self.items)-1
 	
 	if i < 0 {
@@ -69,7 +69,7 @@ func (self *Deque[T]) Pop() *T {
 	return &v
 }
 
-func (self *Deque[T]) Drop(n int) []T {
+func (self *Slice[T]) Drop(n int) []T {
 	l := len(self.items)
 	
 	if l < n {
@@ -82,11 +82,11 @@ func (self *Deque[T]) Drop(n int) []T {
 	return out
 }
 
-func (self *Deque[T]) Push(val T) {
+func (self *Slice[T]) Push(val T) {
 	self.items = append(self.items, val)
 }
 
-func (self *Deque[T]) String() string {
+func (self *Slice[T]) String() string {
 	var out strings.Builder
 	self.Dump(&out)
 	return out.String()

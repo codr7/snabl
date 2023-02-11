@@ -26,8 +26,8 @@ type Vm struct {
 	Tags []V
 	
 	Code []Op
-	Stack Deque[V]
-	Calls Deque[Call]
+	Stack Slice[V]
+	Calls Slice[Call]
 	
 	env Env
 	fun *Fun
