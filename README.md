@@ -45,9 +45,7 @@ repl@1:9
   load "test/all.sl"
 
 Testing T...OK
-Testing F...OK
-Testing 3...OK
-Testing 1...OK
+...
 ```
 
 ## Benchmarking
