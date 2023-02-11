@@ -39,6 +39,10 @@ func (self *V) Emit(args *Forms, vm *Vm, env Env, pos Pos) error {
 	return self.t.Emit(*self, args, vm, env, pos)
 }
 
+func (self *V) Write(out io.Writer) error {
+	return self.t.Write(*self, out)
+}
+
 func (self *V) Dump(out io.Writer) error {
 	return self.t.Dump(*self, out)
 }

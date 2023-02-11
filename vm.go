@@ -151,6 +151,9 @@ func (self *Vm) Eval(pc *Pc) error {
 		case PUSH_INT_OP:
 			self.Stack.Push(V{t: &self.AbcLib.IntType, d: op.PushIntVal()})
 			*pc++
+		case PUSH_NIL_OP:
+			self.Stack.Push(V{t: &self.AbcLib.NilType, d: nil})
+			*pc++
 		case PUSH_TIME_OP:
 			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: op.PushTimeVal()})
 			*pc++

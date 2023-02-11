@@ -59,6 +59,7 @@ const (
 	PUSH_OP
 	PUSH_BOOL_OP
 	PUSH_INT_OP
+	PUSH_NIL_OP
 	PUSH_TIME_OP
 	RET_OP
 	STOP_OP
@@ -100,6 +101,8 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 		fmt.Fprintf(out, "PUSH_BOOL %v", self.PushBoolVal())
 	case PUSH_INT_OP:
 		fmt.Fprintf(out, "PUSH_INT %v", self.PushIntVal())
+	case PUSH_NIL_OP:
+		io.WriteString(out, "PUSH_NIL")
 	case PUSH_TIME_OP:
 		fmt.Fprintf(out, "PUSH_TIME %v", self.PushTimeVal())
 	case RET_OP:
@@ -206,6 +209,10 @@ func PushIntOp(val int) Op {
 
 func (self Op) PushIntVal() int {
 	return OpArg[int](self, PUSH_INT_VAL, PUSH_INT_VAL_WIDTH)
+}
+
+func PushNilOp() Op {
+	return Op(PUSH_NIL_OP)
 }
 
 func PushTimeOp(val time.Duration) Op {

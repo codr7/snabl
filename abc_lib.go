@@ -13,14 +13,15 @@ type AbcLib struct {
 	IntType IntType
 	MacroType MacroType
 	MetaType MetaType
+	NilType NilType
 	PosType PosType
 	PrimType PrimType
 	StringType StringType
 	TimeType TimeType
 
-	BenchMacro, FunMacro, IfMacro, TestMacro Macro
+	BenchMacro, DebugMacro, FunMacro, IfMacro, TestMacro, TraceMacro Macro
 	
-	AddPrim, FailPrim, GtPrim, SubPrim Prim
+	AddPrim, FailPrim, GtPrim, PosPrim, SayPrim, SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
@@ -45,6 +46,12 @@ func (self *AbcLib) Init(vm *Vm) {
 			}
 
 			vm.Code[vm.Emit()] = StopOp()			
+			return nil
+		})
+	
+	self.BindMacro(&self.DebugMacro, "debug", 0,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			vm.Debug = !vm.Debug
 			return nil
 		})
 	
@@ -119,6 +126,12 @@ func (self *AbcLib) Init(vm *Vm) {
 			return nil
 		})
 
+	self.BindMacro(&self.TraceMacro, "trace", 0,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			vm.Trace = !vm.Trace
+			return nil
+		})
+
 	self.BindPrim(&self.AddPrim, "+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
 		a := vm.Stack.Pop().d.(int)
@@ -126,7 +139,7 @@ func (self *AbcLib) Init(vm *Vm) {
 		return nil
 	})
 	
-	 self.BindPrim(&self.FailPrim, "fail", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+	self.BindPrim(&self.FailPrim, "fail", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		return vm.E(pos, vm.Stack.Pop().String())
 	})
 
@@ -134,6 +147,28 @@ func (self *AbcLib) Init(vm *Vm) {
 		b := vm.Stack.Pop().d.(int)
 		a := vm.Stack.Pop().d.(int)
 		vm.Stack.Push(V{&vm.AbcLib.BoolType, a > b})
+		return nil
+	})
+
+	self.BindPrim(&self.PosPrim, "pos", 0, func(self *Prim, vm *Vm, pos *Pos) error {
+		if pos == nil {
+			vm.Stack.Push(V{&vm.AbcLib.NilType, nil})
+		} else {
+			vm.Stack.Push(V{&vm.AbcLib.PosType, *pos})
+		}
+		
+		return nil
+	})
+
+	self.BindPrim(&self.SayPrim, "say", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		if err := vm.Stack.Pop().Write(vm.Stdout); err != nil {
+			return err
+		}
+
+		if _, err := fmt.Fprintln(vm.Stdout, ""); err != nil {
+			return err
+		}
+
 		return nil
 	})
 
@@ -170,6 +205,10 @@ func (self *BoolType) Dump(val V, out io.Writer) error {
 	return err
 }
 
+func (self *BoolType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
+}
+
 type FunType struct {
 	BasicType
 }
@@ -182,6 +221,10 @@ func (self *FunType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {
 func (self *FunType) Dump(val V, out io.Writer) error {
 	_, err := io.WriteString(out, val.d.(*Fun).String())
 	return err
+}
+
+func (self *FunType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
 }
 
 type IntType struct {
@@ -198,6 +241,10 @@ func (self *IntType) Dump(val V, out io.Writer) error {
 	return err
 }
 
+func (self *IntType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
+}
+
 type MacroType struct {
 	BasicType
 }
@@ -210,6 +257,10 @@ func (self *MacroType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error 
 func (self *MacroType) Dump(val V, out io.Writer) error {
 	_, err := io.WriteString(out, val.d.(*Macro).String())
 	return err
+}
+
+func (self *MacroType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
 }
 
 type MetaType struct {
@@ -226,6 +277,32 @@ func (self *MetaType) Dump(val V, out io.Writer) error {
 	return err
 }
 
+func (self *MetaType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
+}
+
+type NilType struct {
+	BasicType
+}
+
+func (self *NilType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
+	vm.Code[vm.Emit()] = PushNilOp()
+	return nil
+}
+
+func (self *NilType) Bool(val V) bool {
+	return false
+}
+
+func (self *NilType) Dump(val V, out io.Writer) error {
+	_, err := io.WriteString(out, "NIL")
+	return err
+}
+
+func (self *NilType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
+}
+
 type PosType struct {
 	BasicType
 }
@@ -238,6 +315,10 @@ func (self *PosType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {
 func (self *PosType) Dump(val V, out io.Writer) error {
 	_, err := fmt.Fprintf(out, "%v", val.d.(Pos))
 	return err
+}
+
+func (self *PosType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
 }
 
 type PrimType struct {
@@ -254,6 +335,10 @@ func (self *PrimType) Dump(val V, out io.Writer) error {
 	return err
 }
 
+func (self *PrimType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
+}
+
 type StringType struct {
 	BasicType
 }
@@ -264,6 +349,11 @@ func (self *StringType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error
 }
 
 func (self *StringType) Dump(val V, out io.Writer) error {
+	_, err := fmt.Fprintf(out, "\"%v\"", val.d.(string))
+	return err
+}
+
+func (self *StringType) Write(val V, out io.Writer) error {
 	_, err := io.WriteString(out, val.d.(string))
 	return err
 }
@@ -280,4 +370,8 @@ func (self *TimeType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {
 func (self *TimeType) Dump(val V, out io.Writer) error {
 	_, err := fmt.Fprintf(out, "%v", val.d.(time.Duration))
 	return err
+}
+
+func (self *TimeType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
 }

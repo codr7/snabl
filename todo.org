@@ -7,6 +7,11 @@
 *** add Callee with Arity()
 * add tail fib
 * add cobra cli
+* change add/sub/gt prims to use Top instead of Pop for a
+* unroll bench loop
+** add ClearOp
+* add def prim
+** emit/eval arg at emit time
 
 fun foo (x) x
 42 foo

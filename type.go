@@ -10,6 +10,7 @@ type Type interface {
 	Bool(val V) bool
 	Eq(left, right V) bool
 	Dump(val V, out io.Writer) error
+	Write(val V, out io.Writer) error
 	Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error
 }
 

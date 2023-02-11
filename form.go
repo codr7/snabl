@@ -19,6 +19,14 @@ func (self *BasicForm) Init(pos Pos) {
 	self.pos = pos
 }
 
+func (self *BasicForm) Emit(args *Forms, vm *Vm, env Env) error {
+	if vm.Debug {
+		vm.EmitPos(self.pos)
+	}
+
+	return nil
+}
+
 type GroupForm struct {
 	BasicForm
 	items []Form
@@ -35,6 +43,10 @@ func (self *GroupForm) Init(pos Pos, items...Form) *GroupForm {
 }
 
 func (self *GroupForm) Emit(args *Forms, vm *Vm, env Env) error {
+	if err := self.BasicForm.Emit(args, vm, env); err != nil {
+		return err
+	}
+
 	for _, f := range self.items {
 		if err := f.Emit(args, vm, env); err != nil {
 			return err
@@ -76,6 +88,10 @@ func (self *IdForm) Init(pos Pos, name string) *IdForm {
 }
 
 func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
+	if err := self.BasicForm.Emit(args, vm, env); err != nil {
+		return err
+	}
+
 	if vm.fun != nil {
 		i := vm.fun.ArgIndex(self.name)
 
@@ -140,6 +156,10 @@ func (self *LitForm) Init(pos Pos, t Type, d any) *LitForm {
 }
 
 func (self *LitForm) Emit(args *Forms, vm *Vm, env Env) error {
+	if err := self.BasicForm.Emit(args, vm, env); err != nil {
+		return err
+	}
+	
 	return self.value.Emit(args, vm, env, self.pos)
 }
 
