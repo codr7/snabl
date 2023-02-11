@@ -46,9 +46,6 @@ const (
 	PUSH_TIME_VAL = OP_ID_WIDTH
 	PUSH_TIME_VAL_WIDTH  = OP_WIDTH - PUSH_TIME_VAL
 
-	TEST_EXPECTED = OP_ID_WIDTH
-	TEST_EXPECTED_WIDTH = OP_WIDTH - PUSH_VAL
-
 	ARG_OP = iota
 	BENCH_OP
 	CALL_FUN_OP
@@ -110,7 +107,7 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 	case STOP_OP:
 		io.WriteString(out, "STOP")
 	case TEST_OP:
-		fmt.Fprintf(out, "TEST %v", vm.Tags[self.TestExpected()].String())
+		fmt.Fprintf(out, "TEST")
 	default:
 		panic(fmt.Sprintf("Invalid op id: %v", id))
 	}
@@ -231,12 +228,8 @@ func StopOp() Op {
 	return Op(STOP_OP)
 }
 
-func TestOp(expected Tag) Op {
-	return Op(TEST_OP) + Op(expected << TEST_EXPECTED)
-}
-
-func (self Op) TestExpected() Tag {
-	return OpArg[Tag](self, TEST_EXPECTED, TEST_EXPECTED_WIDTH)
+func TestOp() Op {
+	return Op(TEST_OP)
 }
 
 func TraceOp() Op {

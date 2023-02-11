@@ -1,9 +1,11 @@
 package snabl
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -18,6 +20,7 @@ type Vm struct {
 	Debug bool
 	Trace bool
 	
+	Path string
 	Stdin io.Reader
 	Stdout io.Writer
 
@@ -38,6 +41,56 @@ func (self *Vm) Init() {
 	self.Stdout = os.Stdout
 	self.AbcLib.Init(self)
 	self.env = NewEnv()
+}
+
+func (self *Vm) Load(path string, eval bool) error {
+	var p string
+
+	if filepath.IsAbs(path) {
+		p = path
+	} else {
+		p = filepath.Join(self.Path, path)
+	}
+	
+	f, err := os.Open(p)
+
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	var forms Forms
+
+	pos := NewPos(p, 1, 1)
+	
+	if err := ReadForms(self, pos, bufio.NewReader(f), &forms); err != nil {
+		return err
+	}
+	
+	pc := self.EmitPc()
+
+	if err := forms.Emit(self, self.env); err != nil {
+		return err
+	}
+	
+	if !eval {
+		return nil
+	}
+
+	self.Code[self.Emit()] = StopOp()
+	prevPath := self.Path
+
+	defer func() {
+		self.Path = prevPath
+	}()
+	
+	self.Path = filepath.Dir(p)
+
+	if err := self.Eval(&pc); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (self *Vm) Tag(val V) Tag {
@@ -161,19 +214,18 @@ func (self *Vm) Eval(pc *Pc) error {
 			*pc++
 			return nil
 		case TEST_OP:
-			expected := self.Tags[op.TestExpected()]
+			expected := self.Stack.Pop()
 			fmt.Fprintf(self.Stdout, "Testing %v...", expected.String())
-			startTime := time.Now()
 			*pc++
 
 			if err := self.Eval(pc); err != nil {
 				return err
 			}
 
-			if actual := self.Stack.Pop(); actual.Eq(expected) {
-				fmt.Fprintf(self.Stdout, "OK (%v)\n", time.Now().Sub(startTime))
+			if actual := self.Stack.Pop(); actual.Eq(*expected) {
+				fmt.Fprintln(self.Stdout, "OK")
 			} else {
-				fmt.Fprintf(self.Stdout, "FAIL\n")
+				fmt.Fprintln(self.Stdout, "FAIL")
 			}
 		case TRACE_OP:
 			*pc++

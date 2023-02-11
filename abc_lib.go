@@ -21,7 +21,7 @@ type AbcLib struct {
 
 	BenchMacro, DebugMacro, FunMacro, IfMacro, TestMacro, TraceMacro Macro
 	
-	AddPrim, FailPrim, GtPrim, PosPrim, SayPrim, SubPrim Prim
+	AddPrim, EqPrim, FailPrim, GtPrim, LoadPrim, PosPrim, SayPrim, SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
@@ -115,8 +115,11 @@ func (self *AbcLib) Init(vm *Vm) {
 	
 	self.BindMacro(&self.TestMacro, "test", 2,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
-			expected := args.Pop().(*LitForm).value
-			vm.Code[vm.Emit()] = TestOp(vm.Tag(expected))
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+			
+			vm.Code[vm.Emit()] = TestOp()
 
 			if err := args.Pop().Emit(args, vm, env); err != nil {
 				return err
@@ -134,20 +137,32 @@ func (self *AbcLib) Init(vm *Vm) {
 
 	self.BindPrim(&self.AddPrim, "+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
-		a := vm.Stack.Pop().d.(int)
-		vm.Stack.Push(V{&vm.AbcLib.IntType, a + b})
+		a := vm.Stack.Top(0)
+		a.Init(&vm.AbcLib.IntType, a.d.(int) + b)
 		return nil
 	})
-	
+
+	self.BindPrim(&self.EqPrim, "=", 2, func(self *Prim, vm *Vm, pos *Pos) error {
+		b := vm.Stack.Pop()
+		a := vm.Stack.Top(0)
+		a.Init(&vm.AbcLib.BoolType, a.Eq(*b))
+		return nil
+	})
+
 	self.BindPrim(&self.FailPrim, "fail", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		return vm.E(pos, vm.Stack.Pop().String())
 	})
 
 	self.BindPrim(&self.GtPrim, ">", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
-		a := vm.Stack.Pop().d.(int)
-		vm.Stack.Push(V{&vm.AbcLib.BoolType, a > b})
+		a := vm.Stack.Top(0)
+		a.Init(&vm.AbcLib.BoolType, a.d.(int) > b)
 		return nil
+	})
+
+	self.BindPrim(&self.LoadPrim, "load", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		p := vm.Stack.Pop().d.(string)
+		return vm.Load(p, true)
 	})
 
 	self.BindPrim(&self.PosPrim, "pos", 0, func(self *Prim, vm *Vm, pos *Pos) error {
@@ -174,10 +189,14 @@ func (self *AbcLib) Init(vm *Vm) {
 
 	self.BindPrim(&self.SubPrim, "-", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
-		a := vm.Stack.Pop().d.(int)
-		vm.Stack.Push(V{&vm.AbcLib.IntType, a - b})
+		a := vm.Stack.Top(0)
+		a.Init(&vm.AbcLib.IntType, a.d.(int) - b)
 		return nil
 	})
+
+	self.Bind("T", &self.BoolType, true)
+	self.Bind("F", &self.BoolType, false)
+	self.Bind("NIL", &self.NilType, nil)
 }
 
 type BoolType struct {

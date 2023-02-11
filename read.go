@@ -41,6 +41,9 @@ NEXT:
 	case '(':
 		pos.column++
 		return ReadGroup(vm, pos, in, out)
+	case '"':
+		pos.column++
+		return ReadString(vm, pos, in, out)
 	default:
 		if unicode.IsDigit(c) {
 			in.UnreadRune()
@@ -155,5 +158,33 @@ func ReadInt(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
 	}
 	
 	out.Push(NewLitForm(fpos, &vm.AbcLib.IntType, v))
+	return nil
+}
+
+func ReadString(vm *Vm, pos *Pos, in *bufio.Reader, out *Forms) error {
+	fpos := *pos
+	var buf strings.Builder
+	
+	for {
+		
+		c, _, err := in.ReadRune()
+		
+		if err != nil {
+			if err == io.EOF {
+				return vm.E(pos, "Open string")
+			}
+		
+			return err
+		}
+
+		if c == '"' {
+			break
+		}
+		
+		buf.WriteRune(c)
+		pos.column++
+	}
+	
+	out.Push(NewLitForm(fpos, &vm.AbcLib.StringType, buf.String()))
 	return nil
 }

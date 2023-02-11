@@ -130,7 +130,9 @@ func (self *IdForm) Emit(args *Forms, vm *Vm, env Env) error {
 
 		vm.Code[vm.Emit()] = CallPrimOp(prim)
 	} else {
-		return found.Emit(args, vm, env, self.pos)
+		if err := found.Emit(args, vm, env, self.pos); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -204,4 +206,14 @@ func (self *Forms) Len() int {
 
 func (self *Forms) Push(form Form) {
 	self.items = append(self.items, form)
+}
+
+func (self *Forms) Emit(vm *Vm, env Env) error {
+	for len(self.items) > 0 {
+		if err := self.Pop().Emit(self, vm, vm.Env()); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -39,11 +39,9 @@ func Repl(vm *Vm) {
 			buffer.Reset()
 			pc := vm.EmitPc()
 
-			for forms.Len() > 0 {
-				if err := forms.Pop().Emit(&forms, vm, vm.Env()); err != nil {
-					fmt.Fprintln(vm.Stdout, err)
-					goto NEXT
-				}
+			if err := forms.Emit(vm, vm.Env()); err != nil {
+				fmt.Fprintln(vm.Stdout, err)
+				goto NEXT
 			}
 
 			vm.Code[vm.Emit()] = StopOp()
