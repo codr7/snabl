@@ -15,7 +15,7 @@ func NewFun(vm *Vm, name string, pc Pc, args...string) *Fun {
 }
 
 func (self *Fun) Init(vm *Vm, name string, pc Pc, args...string) *Fun {
-	self.tag = vm.Tag(V{t: &vm.AbcLib.FunType, d: self})
+	self.tag = vm.Tag(&vm.AbcLib.FunType, self)
 	self.name = name
 	self.pc = pc
 	self.args = args

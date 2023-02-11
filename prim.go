@@ -17,7 +17,7 @@ func NewPrim(vm *Vm, name string, arity int, body PrimBody) *Prim {
 }
 
 func (self *Prim) Init(vm *Vm, name string, arity int, body PrimBody) *Prim {
-	self.tag = vm.Tag(V{t: &vm.AbcLib.PrimType, d: self})
+	self.tag = vm.Tag(&vm.AbcLib.PrimType, self)
 	self.name = name
 	self.arity = arity
 	self.body = body

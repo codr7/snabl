@@ -93,9 +93,9 @@ func (self *Vm) Load(path string, eval bool) error {
 	return nil
 }
 
-func (self *Vm) Tag(val V) Tag {
+func (self *Vm) Tag(t Type, d any) Tag {
 	i := len(self.Tags)
-	self.Tags = append(self.Tags, val)
+	self.Tags = append(self.Tags, V{t: t, d: d})
 	return i
 }
 
@@ -128,12 +128,12 @@ func (self *Vm) Emit() Pc {
 }
 
 func (self *Vm) EmitPos(pos Pos) {
-	tag := self.Tag(V{t: &self.AbcLib.PosType, d: pos})
+	tag := self.Tag(&self.AbcLib.PosType, pos)
 	self.Code[self.EmitNoTrace()] = PosOp(tag)
 }
 
 func (self *Vm) EmitString(str string) {
-	tag := self.Tag(V{t: &self.AbcLib.StringType, d: str})
+	tag := self.Tag(&self.AbcLib.StringType, str)
 	self.Code[self.Emit()] = PushOp(tag) 
 }
 

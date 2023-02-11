@@ -13,11 +13,6 @@ func NewVm() *snabl.Vm {
 	return &vm
 }
 
-func EmitPrim(vm *snabl.Vm, prim *snabl.Prim) {
-	tag := vm.Tag(&vm.AbcLib.PrimType, prim)
-	vm.Code[vm.Emit()] = snabl.CallPrimOp(tag) 
-}
-
 func PopInt(t *testing.T, vm *snabl.Vm, expected int) {
 	if actual := vm.Stack.Pop(); actual.Type() != &vm.AbcLib.IntType || actual.Data().(int) != expected {
 		t.Errorf("Expected %v: %v", expected, actual.String())
@@ -29,7 +24,7 @@ func TestAdd(t *testing.T) {
 	pc := vm.EmitPc()
 	vm.Code[vm.Emit()] = snabl.PushIntOp(7) 
 	vm.Code[vm.Emit()] = snabl.PushIntOp(14)
-	EmitPrim(vm, &vm.AbcLib.AddPrim)
+	vm.Code[vm.Emit()] = snabl.CallPrimOp(&vm.AbcLib.AddPrim) 
 	vm.Code[vm.Emit()] = snabl.StopOp()
 	
 	if err := vm.Eval(&pc); err != nil {
@@ -51,14 +46,17 @@ func TestFail(t *testing.T) {
 	vm.EmitPos(*pos)
 	msg := "failing"
 	vm.EmitString(msg)
-	EmitPrim(vm, &vm.AbcLib.FailPrim)
+	vm.Code[vm.Emit()] = snabl.CallPrimOp(&vm.AbcLib.FailPrim) 
 	vm.Code[vm.Emit()] = snabl.StopOp()
 	
 	if err := vm.Eval(&pc); err == nil {
 		t.Fatal("Should fail with error")
 	} else if e := err.(*snabl.E);
-	e.Pos().Source() != pos.Source() || e.Pos().Line() != pos.Line() || e.Msg() != msg {
-		t.Fatalf("Wrong information in error: %v", e.Error())
+	e.Pos().Source() != pos.Source() ||
+		e.Pos().Line() != pos.Line() ||
+		e.Pos().Column() != pos.Column() ||
+		e.Msg() != msg {
+		t.Fatalf("Wrong information in error: %v", e)
 	}
 	
 	if vm.Stack.Len() != 0 {

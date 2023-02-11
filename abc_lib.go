@@ -233,7 +233,7 @@ type FunType struct {
 }
 
 func (self *FunType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val.t, val.d))
 	return nil
 }
 
@@ -269,7 +269,7 @@ type MacroType struct {
 }
 
 func (self *MacroType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val.t, val.d))
 	return nil
 }
 
@@ -287,7 +287,7 @@ type MetaType struct {
 }
 
 func (self *MetaType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val.t, val.d))
 	return nil
 }
 
@@ -345,7 +345,7 @@ type PrimType struct {
 }
 
 func (self *PrimType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val.t, val.d))
 	return nil
 }
 

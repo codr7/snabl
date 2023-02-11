@@ -49,6 +49,6 @@ func (self *V) Dump(out io.Writer) error {
 
 func (self V) String() string {
 	var out strings.Builder
-	self.Dump(&out)
+	self.Write(&out)
 	return out.String()
 }
