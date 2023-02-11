@@ -58,3 +58,9 @@ Testing 1...OK
 
 4.879072223s
 ```
+
+```
+  load "bench/fibt.sl"
+  
+2.869253317s
+```
