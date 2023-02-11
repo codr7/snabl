@@ -69,7 +69,7 @@ func (self *Slice[T]) Pop() *T {
 	return &v
 }
 
-func (self *Slice[T]) Drop(n int) []T {
+func (self *Slice[T]) Tail(n int) []T {
 	l := len(self.items)
 	
 	if l < n {

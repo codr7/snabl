@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	VERSION = 1
+	VERSION = 2
 )
 
 type Pc = int
@@ -119,7 +119,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			f := self.Tags[op.CallFunTag()].d.(*Fun)
 			
 			self.Calls.Push(Call{
-				pos: pos, fun: f, args: self.Stack.Drop(f.Arity()), retPc: *pc+1})
+				pos: pos, fun: f, args: self.Stack.Tail(f.Arity()), retPc: *pc+1})
 			
 			*pc = f.pc
 		case CALL_PRIM_OP:
