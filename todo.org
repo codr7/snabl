@@ -1,8 +1,10 @@
-* add test macro
-test result body
 * add load prim
+* add bench dir
+** add fib.sl
 * add dot calls
 ** shuffle args in parser
+** move fun/prim/macro arg shuffling to reader
+*** add Callee with Arity()
 * add tail fib
 * add cobra cli
 
@@ -10,3 +12,5 @@ fun foo (x) x
 42 foo
 
 fun fib (n) if > n 1 + fib - n 1 fib - n 2 else n
+
+fun fib (n) if n .> 1 fib n .- 1 .+  fib n .- 2 else n

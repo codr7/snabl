@@ -3,6 +3,7 @@ package snabl
 import (
 	"fmt"
 	"io"
+	"time"
 	"unsafe"
 )
 
@@ -34,13 +35,19 @@ const (
 	POS_TAG = OP_ID_WIDTH
 	POS_TAG_WIDTH = OP_WIDTH - POS_TAG
 
+	PUSH_VAL = OP_ID_WIDTH
+	PUSH_VAL_WIDTH = OP_WIDTH - PUSH_VAL
+
 	PUSH_BOOL_VAL = OP_ID_WIDTH
 
 	PUSH_INT_VAL = OP_ID_WIDTH
 	PUSH_INT_VAL_WIDTH = OP_WIDTH - PUSH_INT_VAL
 
-	PUSH_TAG = OP_ID_WIDTH
-	PUSH_TAG_WIDTH = OP_WIDTH - PUSH_TAG
+	PUSH_TIME_VAL = OP_ID_WIDTH
+	PUSH_TIME_VAL_WIDTH  = OP_WIDTH - PUSH_TIME_VAL
+
+	TEST_EXPECTED = OP_ID_WIDTH
+	TEST_EXPECTED_WIDTH = OP_WIDTH - PUSH_VAL
 
 	ARG_OP = iota
 	BENCH_OP
@@ -52,13 +59,15 @@ const (
 	PUSH_OP
 	PUSH_BOOL_OP
 	PUSH_INT_OP
+	PUSH_TIME_OP
 	RET_OP
 	STOP_OP
+	TEST_OP
 	TRACE_OP
 )
 
 type OpArgType interface {
-	uint8 | uint | int 
+	int | time.Duration | uint | uint8
 }
 
 func OpArg[T OpArgType](op Op, pos, width uint8) T {
@@ -86,15 +95,19 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 	case IF_OP:
 		fmt.Fprintf(out, "IF %v", self.IfElsePc())
 	case PUSH_OP:
-		fmt.Fprintf(out, "PUSH %v", vm.Tags[self.PushTag()].String())
+		fmt.Fprintf(out, "PUSH %v", vm.Tags[self.PushVal()].String())
 	case PUSH_BOOL_OP:
 		fmt.Fprintf(out, "PUSH_BOOL %v", self.PushBoolVal())
 	case PUSH_INT_OP:
 		fmt.Fprintf(out, "PUSH_INT %v", self.PushIntVal())
+	case PUSH_TIME_OP:
+		fmt.Fprintf(out, "PUSH_TIME %v", self.PushTimeVal())
 	case RET_OP:
 		io.WriteString(out, "RET")
 	case STOP_OP:
 		io.WriteString(out, "STOP")
+	case TEST_OP:
+		fmt.Fprintf(out, "TEST %v", vm.Tags[self.TestExpected()].String())
 	default:
 		panic(fmt.Sprintf("Invalid op id: %v", id))
 	}
@@ -163,12 +176,12 @@ func (self Op) PosTag() Tag {
 	return OpArg[Tag](self, POS_TAG, POS_TAG_WIDTH)
 }
 
-func PushOp(tag Tag) Op {
-	return Op(PUSH_OP) + Op(tag << PUSH_TAG)
+func PushOp(val Tag) Op {
+	return Op(PUSH_OP) + Op(val << PUSH_VAL)
 }
 
-func (self Op) PushTag() Tag {
-	return OpArg[Tag](self, PUSH_TAG, PUSH_TAG_WIDTH)
+func (self Op) PushVal() Tag {
+	return OpArg[Tag](self, PUSH_VAL, PUSH_VAL_WIDTH)
 }
 
 func PushBoolOp(val bool) Op {
@@ -195,12 +208,28 @@ func (self Op) PushIntVal() int {
 	return OpArg[int](self, PUSH_INT_VAL, PUSH_INT_VAL_WIDTH)
 }
 
+func PushTimeOp(val time.Duration) Op {
+	return Op(PUSH_TIME_OP) + Op(val << PUSH_TIME_VAL)
+}
+
+func (self Op) PushTimeVal() time.Duration {
+	return OpArg[time.Duration](self, PUSH_TIME_VAL, PUSH_TIME_VAL_WIDTH)
+}
+
 func RetOp() Op {
 	return Op(RET_OP)
 }
 
 func StopOp() Op {
 	return Op(STOP_OP)
+}
+
+func TestOp(expected Tag) Op {
+	return Op(TEST_OP) + Op(expected << TEST_EXPECTED)
+}
+
+func (self Op) TestExpected() Tag {
+	return OpArg[Tag](self, TEST_EXPECTED, TEST_EXPECTED_WIDTH)
 }
 
 func TraceOp() Op {

@@ -27,6 +27,14 @@ func (self *V) Bool() bool {
 	return self.t.Bool(*self)
 }
 
+func (self *V) Eq(other V) bool {
+	if self.t != other.t {
+		return false
+	}
+
+	return self.t.Eq(*self, other)
+}
+
 func (self *V) Emit(args *Forms, vm *Vm, env Env, pos Pos) error {
 	return self.t.Emit(*self, args, vm, env, pos)
 }

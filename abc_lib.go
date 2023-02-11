@@ -3,6 +3,7 @@ package snabl
 import (
 	"fmt"
 	"io"
+	"time"
 )
 
 type AbcLib struct {
@@ -15,8 +16,9 @@ type AbcLib struct {
 	PosType PosType
 	PrimType PrimType
 	StringType StringType
+	TimeType TimeType
 
-	BenchMacro, FunMacro Macro
+	BenchMacro, FunMacro, IfMacro, TestMacro Macro
 	
 	AddPrim, FailPrim, GtPrim, SubPrim Prim
 }
@@ -31,6 +33,7 @@ func (self *AbcLib) Init(vm *Vm) {
 	self.BindType(&self.PosType, "Pos")
 	self.BindType(&self.PrimType, "Prim")
 	self.BindType(&self.StringType, "String")
+	self.BindType(&self.TimeType, "Time")
 
 	self.BindMacro(&self.BenchMacro, "bench", 2,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
@@ -73,7 +76,7 @@ func (self *AbcLib) Init(vm *Vm) {
 			return nil
 		})
 
-	self.BindMacro(&self.BenchMacro, "if", 2,
+	self.BindMacro(&self.IfMacro, "if", 2,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
 			if err := args.Pop().Emit(args, vm, env); err != nil {
 				return err
@@ -103,6 +106,19 @@ func (self *AbcLib) Init(vm *Vm) {
 			return nil
 		})
 	
+	self.BindMacro(&self.TestMacro, "test", 2,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			expected := args.Pop().(*LitForm).value
+			vm.Code[vm.Emit()] = TestOp(vm.Tag(expected))
+
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+
+			vm.Code[vm.Emit()] = StopOp()			
+			return nil
+		})
+
 	self.BindPrim(&self.AddPrim, "+", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
 		a := vm.Stack.Pop().d.(int)
@@ -159,7 +175,7 @@ type FunType struct {
 }
 
 func (self *FunType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(*Fun)))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
 	return nil
 }
 
@@ -187,7 +203,7 @@ type MacroType struct {
 }
 
 func (self *MacroType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(*Macro)))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
 	return nil
 }
 
@@ -201,7 +217,7 @@ type MetaType struct {
 }
 
 func (self *MetaType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(Type)))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
 	return nil
 }
 
@@ -229,7 +245,7 @@ type PrimType struct {
 }
 
 func (self *PrimType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushOp(vm.Tag(self, val.d.(*Prim)))
+	vm.Code[vm.Emit()] = PushOp(vm.Tag(val))
 	return nil
 }
 
@@ -249,5 +265,19 @@ func (self *StringType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error
 
 func (self *StringType) Dump(val V, out io.Writer) error {
 	_, err := io.WriteString(out, val.d.(string))
+	return err
+}
+
+type TimeType struct {
+	BasicType
+}
+
+func (self *TimeType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
+	vm.Code[vm.Emit()] = PushTimeOp(val.d.(time.Duration))
+	return nil
+}
+
+func (self *TimeType) Dump(val V, out io.Writer) error {
+	_, err := fmt.Fprintf(out, "%v", val.d.(time.Duration))
 	return err
 }

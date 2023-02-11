@@ -40,9 +40,9 @@ func (self *Vm) Init() {
 	self.env = NewEnv()
 }
 
-func (self *Vm) Tag(t Type, d any) Tag {
+func (self *Vm) Tag(val V) Tag {
 	i := len(self.Tags)
-	self.Tags = append(self.Tags, V{t: t, d: d})
+	self.Tags = append(self.Tags, val)
 	return i
 }
 
@@ -75,12 +75,12 @@ func (self *Vm) Emit() Pc {
 }
 
 func (self *Vm) EmitPos(pos Pos) {
-	tag := self.Tag(&self.AbcLib.PosType, pos)
+	tag := self.Tag(V{t: &self.AbcLib.PosType, d: pos})
 	self.Code[self.EmitNoTrace()] = PosOp(tag)
 }
 
 func (self *Vm) EmitString(str string) {
-	tag := self.Tag(&self.AbcLib.StringType, str)
+	tag := self.Tag(V{t: &self.AbcLib.StringType, d: str})
 	self.Code[self.Emit()] = PushOp(tag) 
 }
 
@@ -104,7 +104,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			startPc := *pc
 			startTime := time.Now()
 			
-			for i := 0; i < op.BenchReps(); i++ {
+			for i := 0; i < op.BenchReps(); i++ {				
 				*pc = startPc
 				
 				if err := self.Eval(pc); err != nil {
@@ -114,7 +114,7 @@ func (self *Vm) Eval(pc *Pc) error {
 				self.Stack.Clear()
 			}
 			
-			self.Stack.Push(V{t: &self.AbcLib.IntType, d: time.Now().Sub(startTime)})
+			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: time.Now().Sub(startTime)})
 		case CALL_FUN_OP:
 			f := self.Tags[op.CallFunTag()].d.(*Fun)
 			
@@ -143,7 +143,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			pos = &p
 			*pc++
 		case PUSH_OP:
-			self.Stack.Push(self.Tags[op.PushTag()])
+			self.Stack.Push(self.Tags[op.PushVal()])
 			*pc++
 		case PUSH_BOOL_OP:
 			self.Stack.Push(V{t: &self.AbcLib.BoolType, d: op.PushBoolVal()})
@@ -151,9 +151,27 @@ func (self *Vm) Eval(pc *Pc) error {
 		case PUSH_INT_OP:
 			self.Stack.Push(V{t: &self.AbcLib.IntType, d: op.PushIntVal()})
 			*pc++
+		case PUSH_TIME_OP:
+			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: op.PushTimeVal()})
+			*pc++
 		case STOP_OP:
 			*pc++
 			return nil
+		case TEST_OP:
+			expected := self.Tags[op.TestExpected()]
+			fmt.Fprintf(self.Stdout, "Testing %v...", expected.String())
+			startTime := time.Now()
+			*pc++
+
+			if err := self.Eval(pc); err != nil {
+				return err
+			}
+
+			if actual := self.Stack.Pop(); actual.Eq(expected) {
+				fmt.Fprintf(self.Stdout, "OK (%v)\n", time.Now().Sub(startTime))
+			} else {
+				fmt.Fprintf(self.Stdout, "FAIL\n")
+			}
 		case TRACE_OP:
 			*pc++
 			self.Code[*pc].Trace(self, *pc, pos, self.Stdout)
