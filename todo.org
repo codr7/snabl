@@ -1,3 +1,4 @@
+* profile fib/fibt
 * add dot calls
 ** shuffle args in parser
 * add cobra cli
