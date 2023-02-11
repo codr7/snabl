@@ -38,13 +38,22 @@ func (self *AbcLib) Init(vm *Vm) {
 
 	self.BindMacro(&self.BenchMacro, "bench", 2,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			vm.Code[vm.Emit()] = BenchOp()
 			reps := args.Pop().(*LitForm).value.d.(int)
-			vm.Code[vm.Emit()] = BenchOp(reps)
+			body := args.Pop()
+			var bodyArgs Forms
 
-			if err := args.Pop().Emit(args, vm, env); err != nil {
-				return err
+			for i := 0; i < reps; i++ {
+				bodyArgs = *args
+				
+				if err := body.Emit(&bodyArgs, vm, env); err != nil {
+					return err
+				}
+
+				vm.Code[vm.Emit()] = ClearOp()
 			}
 
+			*args = bodyArgs
 			vm.Code[vm.Emit()] = StopOp()			
 			return nil
 		})

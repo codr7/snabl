@@ -158,20 +158,13 @@ func (self *Vm) Eval(pc *Pc) error {
 			self.Stack.Push(v)
 			*pc++
 		case BENCH_OP:
-			*pc++
-			startPc := *pc
 			startTime := time.Now()
+			*pc++
 			
-			for i := 0; i < op.BenchReps(); i++ {				
-				*pc = startPc
-				
-				if err := self.Eval(pc); err != nil {
-					return err
-				}
-
-				self.Stack.Clear()
+			if err := self.Eval(pc); err != nil {
+				return err
 			}
-			
+
 			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: time.Now().Sub(startTime)})
 		case CALL_FUN_OP:
 			f := self.Tags[op.CallFunTag()].d.(*Fun)
@@ -187,6 +180,9 @@ func (self *Vm) Eval(pc *Pc) error {
 				return err
 			}
 
+			*pc++
+		case CLEAR_OP:
+			self.Stack.Clear()
 			*pc++
 		case GOTO_OP:
 			*pc = op.GotoPc()

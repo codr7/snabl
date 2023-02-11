@@ -17,9 +17,6 @@ const (
 	ARG_INDEX = OP_ID_WIDTH
 	ARG_INDEX_WIDTH = OP_WIDTH - ARG_INDEX
 
-	BENCH_REPS = OP_ID_WIDTH
-	BENCH_REPS_WIDTH = OP_WIDTH - BENCH_REPS
-
 	CALL_FUN_TAG = OP_ID_WIDTH
 	CALL_FUN_TAG_WIDTH = OP_WIDTH - CALL_FUN_TAG
 
@@ -50,6 +47,7 @@ const (
 	BENCH_OP
 	CALL_FUN_OP
 	CALL_PRIM_OP
+	CLEAR_OP
 	GOTO_OP
 	IF_OP
 	POS_OP
@@ -83,11 +81,13 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 	case ARG_OP:
 		fmt.Fprintf(out, "ARG %v", self.ArgIndex())
 	case BENCH_OP:
-		fmt.Fprintf(out, "BENCH %v", self.BenchReps())
+		io.WriteString(out, "BENCH")
 	case CALL_FUN_OP:
 		fmt.Fprintf(out, "CALL_FUN %v", vm.Tags[self.CallFunTag()].String())
 	case CALL_PRIM_OP:
 		fmt.Fprintf(out, "CALL_PRIM %v", vm.Tags[self.CallPrimTag()].String())
+	case CLEAR_OP:
+		io.WriteString(out, "CLEAR")
 	case GOTO_OP:
 		fmt.Fprintf(out, "GOTO %v", self.GotoPc())
 	case IF_OP:
@@ -128,12 +128,8 @@ func (self Op) ArgIndex() int {
 	return OpArg[int](self, ARG_INDEX, ARG_INDEX_WIDTH)
 }
 
-func BenchOp(reps int) Op {
-	return Op(BENCH_OP) + Op(reps << BENCH_REPS)
-}
-
-func (self Op) BenchReps() int {
-	return OpArg[int](self, BENCH_REPS, BENCH_REPS_WIDTH)
+func BenchOp() Op {
+	return Op(BENCH_OP)
 }
 
 func CallFunOp(fun *Fun) Op {
@@ -150,6 +146,10 @@ func CallPrimOp(prim *Prim) Op {
 
 func (self Op) CallPrimTag() Tag {
 	return OpArg[Tag](self, CALL_PRIM_TAG, CALL_PRIM_TAG_WIDTH)
+}
+
+func ClearOp() Op {
+	return Op(CLEAR_OP)
 }
 
 func GotoOp(pc Pc) Op {

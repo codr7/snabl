@@ -1,5 +1,4 @@
-* unroll bench loop
-** add ClearOp
+* add tail fib
 * add dot calls
 ** shuffle args in parser
 ** move fun/prim/macro arg shuffling to reader?
@@ -7,7 +6,6 @@
 
 defun fib(n) if n .> 1 fib n .- 1 .+  fib n .- 2 else n
 
-* add tail fib
 * add cobra cli
 * add def prim
 ** emit/eval arg at emit time
