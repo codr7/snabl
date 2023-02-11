@@ -8,10 +8,10 @@ import (
 )
 
 type Op uint64
-type OpId = uint8
+type OpId = int
 
 const (
-	OP_WIDTH = uint8((unsafe.Sizeof(Op(0)) * 8))
+	OP_WIDTH = int(unsafe.Sizeof(Op(0)) * 8)
 	OP_ID_WIDTH = 6
 
 	ARG_INDEX = OP_ID_WIDTH
@@ -75,10 +75,10 @@ const (
 )
 
 type OpArgType interface {
-	int | time.Duration | uint | uint8
+	int | time.Duration
 }
 
-func OpArg[T OpArgType](op Op, pos, width uint8) T {
+func OpArg[T OpArgType](op Op, pos, width int) T {
 	return (T(op) >> pos) & ((T(1) << width) - 1)
 }
 
@@ -227,7 +227,7 @@ func (self Op) PushVal() Tag {
 }
 
 func PushBoolOp(val bool) Op {
-	var v uint8
+	var v int
 	
 	if val {
 		v = 1
@@ -239,7 +239,7 @@ func PushBoolOp(val bool) Op {
 }
 
 func (self Op) PushBoolVal() bool {
-	return OpArg[uint8](self, PUSH_BOOL_VAL, 1) == 1
+	return OpArg[int](self, PUSH_BOOL_VAL, 1) == 1
 }
 
 func PushIntOp(val int) Op {
