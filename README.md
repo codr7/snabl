@@ -14,7 +14,7 @@ Error: failing
 panic: repl@1:7 Error: failing
 ```
 
-`trace` may be used to toggle tracing of VM ops.
+`trace` may be used to toggle tracing of operations and stack contents.
 
 ```
   trace
