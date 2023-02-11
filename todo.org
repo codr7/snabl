@@ -1,6 +1,10 @@
 * add tail calls
+** add vm.Fuse(pc)
+** add NOp
+** fuse callfun ret and callfun goto ret
 * add dec op
 ** delta arg
+** fuse - lit
 * add dot calls
 ** shuffle args in parser
 ** move fun/prim/macro arg shuffling to reader?
