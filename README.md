@@ -29,6 +29,15 @@ panic: repl@1:7 Error: failing
 3
 ```
 
+`pos` may be used to push the current source position.
+
+```
+  1 2 say pos 3
+  
+repl@1:9
+3
+```
+
 ## Testing
 `test expected exp` evaluates `exp` and compares the result with `expected`.
 

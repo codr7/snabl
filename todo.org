@@ -1,5 +1,3 @@
-* convert pos prim to macro
-** add to readme/debug
 * unroll bench loop
 ** add ClearOp
 * add dot calls

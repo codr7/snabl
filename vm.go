@@ -137,6 +137,11 @@ func (self *Vm) EmitString(str string) {
 	self.Code[self.Emit()] = PushOp(tag) 
 }
 
+func (self *Vm) EmitVal(t Type, d any) {
+	tag := self.Tag(t, d)
+	self.Code[self.Emit()] = PushOp(tag)
+}
+
 func (self *Vm) EmitPc() Pc {
 	return Pc(len(self.Code))
 }

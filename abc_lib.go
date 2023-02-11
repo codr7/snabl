@@ -19,9 +19,9 @@ type AbcLib struct {
 	StringType StringType
 	TimeType TimeType
 
-	BenchMacro, DebugMacro, DefunMacro, IfMacro, TestMacro, TraceMacro Macro
+	BenchMacro, DebugMacro, DefunMacro, IfMacro, PosMacro, TestMacro, TraceMacro Macro
 	
-	AddPrim, EqPrim, FailPrim, GtPrim, LoadPrim, PosPrim, SayPrim, SubPrim Prim
+	AddPrim, EqPrim, FailPrim, GtPrim, LoadPrim, SayPrim, SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
@@ -112,7 +112,13 @@ func (self *AbcLib) Init(vm *Vm) {
 			vm.Code[ifPc] = IfOp(elsePc)
 			return nil
 		})
-	
+
+	self.BindMacro(&self.PosMacro, "pos", 0,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			vm.EmitVal(&vm.AbcLib.PosType, pos)
+			return nil
+		})
+
 	self.BindMacro(&self.TestMacro, "test", 2,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
 			if err := args.Pop().Emit(args, vm, env); err != nil {
@@ -163,16 +169,6 @@ func (self *AbcLib) Init(vm *Vm) {
 	self.BindPrim(&self.LoadPrim, "load", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		p := vm.Stack.Pop().d.(string)
 		return vm.Load(p, true)
-	})
-
-	self.BindPrim(&self.PosPrim, "pos", 0, func(self *Prim, vm *Vm, pos *Pos) error {
-		if pos == nil {
-			vm.Stack.Push(V{&vm.AbcLib.NilType, nil})
-		} else {
-			vm.Stack.Push(V{&vm.AbcLib.PosType, *pos})
-		}
-		
-		return nil
 	})
 
 	self.BindPrim(&self.SayPrim, "say", 1, func(self *Prim, vm *Vm, pos *Pos) error {
