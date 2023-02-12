@@ -1,4 +1,67 @@
 # Snabl
+Snabl is a simple scripting language implemented in Go.
+
+## Setup
+
+```
+git clone https://github.com/codr7/snabl.git
+cd snabl
+go build main/snabl.go
+./snabl
+Snabl v4
+
+  say "hello"
+
+hello
+```
+
+## Syntax
+Snabl uses strict prefix syntax, like Lisp but without parens.
+As a consequence, functions and macros have fixed arity.
+
+## Types
+
+### Bool
+The type of boolean values.
+
+### Form
+The type of source code forms.
+
+### Fun
+The type of functions.
+
+### Int
+The type of integer values.
+
+### Macro
+The type of macros.
+
+### Meta
+The type of types.
+
+### Pos
+The type of source code positions.
+
+### Prim
+The type of primitives, functions implemented in Go.
+
+### String
+The type of string values.
+
+### Time
+The type of time intervals.
+
+## Environments
+Curlies may be used to create new compile time environments.
+
+```
+   {defun foo() 42 foo}
+
+[42]
+  foo
+
+repl@1:1 Error: foo?
+```
 
 ## Debugging
 `debug` may be used to toggle generation of debug info and panic on errors.

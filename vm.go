@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	VERSION = 3
+	VERSION = 4
 )
 
 type Pc = int
@@ -132,14 +132,9 @@ func (self *Vm) EmitPos(pos Pos) {
 	self.Code[self.EmitNoTrace()] = PosOp(tag)
 }
 
-func (self *Vm) EmitString(str string) {
-	tag := self.Tag(&self.AbcLib.StringType, str)
-	self.Code[self.Emit()] = PushOp(tag) 
-}
 
-func (self *Vm) EmitVal(t Type, d any) {
-	tag := self.Tag(t, d)
-	self.Code[self.Emit()] = PushOp(tag)
+func (self *Vm) EmitTag(t Type, d any) {
+	self.Code[self.Emit()] = PushOp(self.Tag(t, d))
 }
 
 func (self *Vm) EmitPc() Pc {

@@ -33,3 +33,9 @@ func (self *BasicType) Bool(val V) bool {
 func (Self *BasicType) Eq(left, right V) bool {
 	return left.d == right.d
 }
+
+func (self *BasicType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
+	vm.EmitTag(val.t, val.d)
+	return nil
+}
+
