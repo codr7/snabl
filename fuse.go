@@ -5,14 +5,14 @@ import (
 )
 
 func (self *Vm) Fuse(startPc Pc) {
-	for self.FuseDec(startPc, nil) +
+	for self.FuseAddInt(startPc, nil) +
 		self.FuseGoto(startPc, nil) +
-		self.FuseInc(startPc, nil) +
 		self.FuseNop(startPc, nil) +
-		self.FuseRec(startPc, nil) > 0 {}
+		self.FuseRec(startPc, nil) +
+		self.FuseSubInt(startPc, nil) > 0 {}
 }
 
-func (self *Vm) FuseDec(startPc Pc, prevOp *Op) int {
+func (self *Vm) FuseAddInt(startPc Pc, prevOp *Op) int {
 	count := 0
 	
 	for pc := startPc; pc < len(self.Code); {
@@ -20,7 +20,40 @@ func (self *Vm) FuseDec(startPc Pc, prevOp *Op) int {
 
 		switch op.Id() {
 		case GOTO_OP:
-			count += self.FuseDec(pc+1, prevOp)
+			count += self.FuseAddInt(pc+1, prevOp)
+			pc = op.GotoPc()
+			continue
+		case NOP:
+			pc++
+			continue
+		}
+
+		if prevOp != nil &&
+			prevOp.Id() == PUSH_INT_OP &&
+			op.Id() == CALL_PRIM_OP &&
+			op.CallPrim() == self.AbcLib.AddPrim.tag {
+			fmt.Fprintf(self.Stdout, "%v Fusing PUSH_INT CALL_PRIM(+)\n", pc);
+			*op = AddIntOp(prevOp.PushInt())
+			*prevOp = NOp()
+			count++
+		}
+		
+		prevOp = op
+		pc++
+	}
+
+	return count
+}
+
+func (self *Vm) FuseSubInt(startPc Pc, prevOp *Op) int {
+	count := 0
+	
+	for pc := startPc; pc < len(self.Code); {
+		op := &self.Code[pc]
+
+		switch op.Id() {
+		case GOTO_OP:
+			count += self.FuseSubInt(pc+1, prevOp)
 			pc = op.GotoPc()
 			continue
 		case NOP:
@@ -33,7 +66,7 @@ func (self *Vm) FuseDec(startPc Pc, prevOp *Op) int {
 			op.Id() == CALL_PRIM_OP &&
 			op.CallPrim() == self.AbcLib.SubPrim.tag {
 			fmt.Fprintf(self.Stdout, "%v Fusing PUSH_INT CALL_PRIM(-)\n", pc);
-			*op = DecOp(prevOp.PushIntVal())
+			*op = SubIntOp(prevOp.PushInt())
 			*prevOp = NOp()
 			count++
 		}
@@ -72,39 +105,6 @@ func (self *Vm) FuseGoto(startPc Pc, prevOp *Op) int {
 		} else {
 			pc++
 		}
-	}
-
-	return count
-}
-
-func (self *Vm) FuseInc(startPc Pc, prevOp *Op) int {
-	count := 0
-	
-	for pc := startPc; pc < len(self.Code); {
-		op := &self.Code[pc]
-
-		switch op.Id() {
-		case GOTO_OP:
-			count += self.FuseInc(pc+1, prevOp)
-			pc = op.GotoPc()
-			continue
-		case NOP:
-			pc++
-			continue
-		}
-
-		if prevOp != nil &&
-			prevOp.Id() == PUSH_INT_OP &&
-			op.Id() == CALL_PRIM_OP &&
-			op.CallPrim() == self.AbcLib.AddPrim.tag {
-			fmt.Fprintf(self.Stdout, "%v Fusing PUSH_INT CALL_PRIM(+)\n", pc);
-			*op = IncOp(prevOp.PushIntVal())
-			*prevOp = NOp()
-			count++
-		}
-		
-		prevOp = op
-		pc++
 	}
 
 	return count

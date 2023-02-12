@@ -12,6 +12,10 @@ func (self *Vm) Eval(pc *Pc) error {
 		op := self.Code[*pc]
 
 		switch id := op.Id(); id {
+		case ADD_INT_OP:
+			v := self.Stack.Top(0)
+			v.Init(v.t, v.d.(int) + op.AddInt())
+			*pc++
 		case ARG_OP:
 			v := self.Calls.Top(0).args[op.ArgIndex()]
 			self.Stack.Push(v)
@@ -50,10 +54,6 @@ func (self *Vm) Eval(pc *Pc) error {
 		case CLEAR_OP:
 			self.Stack.Clear()
 			*pc++
-		case DEC_OP:
-			v := self.Stack.Top(0)
-			v.Init(v.t, v.d.(int) - op.IncDelta())
-			*pc++
 		case GOTO_OP:
 			*pc = op.GotoPc()
 		case IF_OP:
@@ -62,10 +62,6 @@ func (self *Vm) Eval(pc *Pc) error {
 			} else {
 				*pc = op.IfElsePc()
 			}
-		case INC_OP:
-			v := self.Stack.Top(0)
-			v.Init(v.t, v.d.(int) + op.IncDelta())
-			*pc++
 		case NOP:
 			*pc++
 		case POS_OP:
@@ -76,16 +72,16 @@ func (self *Vm) Eval(pc *Pc) error {
 			self.Stack.Push(self.Tags[op.PushVal()])
 			*pc++
 		case PUSH_BOOL_OP:
-			self.Stack.Push(V{t: &self.AbcLib.BoolType, d: op.PushBoolVal()})
+			self.Stack.Push(V{t: &self.AbcLib.BoolType, d: op.PushBool()})
 			*pc++
 		case PUSH_INT_OP:
-			self.Stack.Push(V{t: &self.AbcLib.IntType, d: op.PushIntVal()})
+			self.Stack.Push(V{t: &self.AbcLib.IntType, d: op.PushInt()})
 			*pc++
 		case PUSH_NIL_OP:
 			self.Stack.Push(V{t: &self.AbcLib.NilType, d: nil})
 			*pc++
 		case PUSH_TIME_OP:
-			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: op.PushTimeVal()})
+			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: op.PushTime()})
 			*pc++
 		case REC_OP:
 			c := self.Calls.Top(0)
@@ -97,6 +93,10 @@ func (self *Vm) Eval(pc *Pc) error {
 		case STOP_OP:
 			*pc++
 			return nil
+		case SUB_INT_OP:
+			v := self.Stack.Top(0)
+			v.Init(v.t, v.d.(int) - op.SubInt())
+			*pc++
 		case TEST_OP:
 			expected := self.Stack.Pop()
 			fmt.Fprintf(self.Stdout, "Testing %v...", expected.String())
