@@ -1,2 +1,9 @@
+* add []
+** StackForm reader/form
+** push new stack
+*** change vm.Stack to vm.Stack Slice[Stack]
+*** add vm.Stack() method
+** pop as result
+*** add StackType
 * add def prim
 ** emit/eval arg at emit time

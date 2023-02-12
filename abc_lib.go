@@ -25,7 +25,7 @@ type AbcLib struct {
 }
 
 func (self *AbcLib) Init(vm *Vm) {
-	self.BasicLib.Init(vm, "abc")
+	self.BasicLib.Init(vm, nil, "abc")
 	
 	self.BindType(&self.BoolType, "Bool")
 	self.BindType(&self.FunType, "Fun")

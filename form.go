@@ -1,7 +1,7 @@
 package snabl
 
 import (
-	//"fmt"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -27,28 +27,27 @@ func (self *BasicForm) Emit(args *Forms, vm *Vm, env Env) error {
 	return nil
 }
 
-type GroupForm struct {
+type ItemsForm struct {
 	BasicForm
 	items []Form
 }
 
-func NewGroupForm(pos Pos, items...Form) *GroupForm {
-	return new(GroupForm).Init(pos, items...)
-}
-
-func (self *GroupForm) Init(pos Pos, items...Form) *GroupForm {
+func (self *ItemsForm) Init(pos Pos, items []Form) *ItemsForm {
 	self.BasicForm.Init(pos)
 	self.items = items
 	return self
 }
 
-func (self *GroupForm) Emit(args *Forms, vm *Vm, env Env) error {
+func (self *ItemsForm) Emit(args *Forms, vm *Vm, env Env) error {
 	if err := self.BasicForm.Emit(args, vm, env); err != nil {
 		return err
 	}
 
-	for _, f := range self.items {
-		if err := f.Emit(args, vm, env); err != nil {
+	var fargs Forms
+	fargs.Init(self.items)
+	
+	for fargs.Len() > 0 {
+		if err := fargs.Pop().Emit(&fargs, vm, env); err != nil {
 			return err
 		}
 	}
@@ -56,9 +55,8 @@ func (self *GroupForm) Emit(args *Forms, vm *Vm, env Env) error {
 	return nil
 }
 
-func (self *GroupForm) String() string {
+func (self *ItemsForm) String() string {
 	var out strings.Builder
-	io.WriteString(&out, "(")
 
 	for i, f := range self.items {
 		if i > 0 {
@@ -68,8 +66,45 @@ func (self *GroupForm) String() string {
 		io.WriteString(&out, f.String())
 	}
 
-	io.WriteString(&out, ")")
 	return out.String()
+}
+
+type EnvForm struct {
+	ItemsForm
+}
+
+func NewEnvForm(pos Pos, items...Form) *EnvForm {
+	return new(EnvForm).Init(pos, items...)
+}
+
+func (self *EnvForm) Init(pos Pos, items...Form) *EnvForm {
+	self.ItemsForm.Init(pos, items)
+	return self
+}
+
+func (self *EnvForm) Emit(args *Forms, vm *Vm, env Env) error {
+	return self.ItemsForm.Emit(args, vm, NewEnv(env))
+}
+
+func (self *EnvForm) String() string {
+	return fmt.Sprintf("{%v}", self.ItemsForm.String())
+}
+
+type GroupForm struct {
+	ItemsForm
+}
+
+func NewGroupForm(pos Pos, items...Form) *GroupForm {
+	return new(GroupForm).Init(pos, items...)
+}
+
+func (self *GroupForm) Init(pos Pos, items...Form) *GroupForm {
+	self.ItemsForm.Init(pos, items)
+	return self
+}
+
+func (self *GroupForm) String() string {
+	return fmt.Sprintf("(%v)", self.ItemsForm.String())
 }
 
 type IdForm struct {

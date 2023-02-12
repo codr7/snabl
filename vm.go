@@ -38,7 +38,7 @@ func (self *Vm) Init() {
 	self.Stdin = os.Stdin
 	self.Stdout = os.Stdout
 	self.AbcLib.Init(self)
-	self.env = NewEnv()
+	self.env = NewEnv(nil)
 }
 
 func (self *Vm) Load(path string, eval bool) error {

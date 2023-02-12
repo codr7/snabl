@@ -11,8 +11,8 @@ type BasicLib struct {
 	name string
 }
 
-func (self *BasicLib) Init(vm *Vm, name string) {
-	self.BasicEnv.Init()
+func (self *BasicLib) Init(vm *Vm, parent Env, name string) {
+	self.BasicEnv.Init(parent)
 	self.vm = vm
 	self.name = name
 }

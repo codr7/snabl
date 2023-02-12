@@ -39,6 +39,9 @@ NEXT:
 	case '(':
 		pos.column++
 		return self.ReadGroup(pos, in, out)
+	case '{':
+		pos.column++
+		return self.ReadEnv(pos, in, out)
 	case '"':
 		pos.column++
 		return self.ReadString(pos, in, out)
@@ -53,6 +56,41 @@ NEXT:
 	}
 
 	return self.E(pos, "%v?", c)
+}
+
+func (self *Vm) ReadEnv(pos *Pos, in *bufio.Reader, out *Forms) error {
+	fpos := *pos;
+	var forms Forms
+
+	for {
+		c, _, err := in.ReadRune()
+		
+		if err != nil {
+			if err == io.EOF {
+				return self.E(pos, "Open env")
+			}
+			
+			return err
+		}
+
+		if c == '}' {
+			pos.column++
+			break
+		} else {
+			in.UnreadRune()
+		}
+
+		if err := self.ReadForm(pos, in, &forms); err != nil {
+			if err == io.EOF {
+				return self.E(pos, "Open env")
+			}
+
+			return err
+		}
+	}
+
+	out.Push(NewEnvForm(fpos, forms.items...))
+	return nil
 }
 
 func (self *Vm) ReadGroup(pos *Pos, in *bufio.Reader, out *Forms) error {
@@ -91,7 +129,7 @@ func (self *Vm) ReadGroup(pos *Pos, in *bufio.Reader, out *Forms) error {
 }
 
 func (self *Vm) ReadId(pos *Pos, in *bufio.Reader, out *Forms) error {
-	var buffer strings.Builder
+	var buf strings.Builder
 	fpos := *pos
 	
 	for {
@@ -105,16 +143,20 @@ func (self *Vm) ReadId(pos *Pos, in *bufio.Reader, out *Forms) error {
 			return err
 		}
 
-		if c == '(' || c == ')' || unicode.IsSpace(c) || unicode.IsControl(c) {
+		if c == '(' || c == ')' || c == '{' || c == '}' ||
+			unicode.IsSpace(c) || unicode.IsControl(c) {
 			in.UnreadRune()
 			break
 		}
 		
-		buffer.WriteRune(c)
+		buf.WriteRune(c)
 		pos.column++
 	}
 
-	out.Push(NewIdForm(fpos, buffer.String()))
+	if buf.Len() > 0 {
+		out.Push(NewIdForm(fpos, buf.String()))
+	}
+	
 	return nil
 }
 

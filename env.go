@@ -8,14 +8,16 @@ type Env interface {
 }
 
 type BasicEnv struct {
+	parent Env
 	bindings map[string]V
 }
 
-func NewEnv() *BasicEnv {
-	return new(BasicEnv).Init()
+func NewEnv(parent Env) *BasicEnv {
+	return new(BasicEnv).Init(parent)
 }
 
-func (self *BasicEnv) Init() *BasicEnv {
+func (self *BasicEnv) Init(parent Env) *BasicEnv {
+	self.parent = parent
 	self.bindings = make(map[string]V)
 	return self
 }
@@ -28,6 +30,10 @@ func (self *BasicEnv) Find(id string) *V {
 	v, ok := self.bindings[id]
 
 	if !ok {
+		if self.parent != nil {
+			return self.parent.Find(id)
+		}
+		
 		return nil
 	}
 
