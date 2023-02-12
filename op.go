@@ -35,8 +35,8 @@ const (
 	IF_ELSE_PC = OP_ID_WIDTH
 	IF_ELSE_PC_WIDTH = OP_WIDTH - IF_ELSE_PC
 	
-	POS_TAG = OP_ID_WIDTH
-	POS_TAG_WIDTH = OP_WIDTH - POS_TAG
+	POS = OP_ID_WIDTH
+	POS_WIDTH = OP_WIDTH - POS
 
 	PUSH_VAL = OP_ID_WIDTH
 	PUSH_VAL_WIDTH = OP_WIDTH - PUSH_VAL
@@ -90,7 +90,7 @@ func (self Op) Id() OpId {
 	return OpArg[OpId](self, 0, OP_ID_WIDTH)
 }
 
-func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {	
+func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, stack bool, out io.Writer) {	
 	fmt.Fprintf(out, "%v ", pc) 
 	
 	switch id := self.Id(); id {
@@ -140,7 +140,10 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 		fmt.Fprintf(out, " (%v)", *pos)
 	}
 
-	fmt.Fprintf(out, " %v", vm.Stack.String())
+	if stack {
+		fmt.Fprintf(out, " %v", vm.Stack.String())
+	}
+	
 	fmt.Fprintln(out, "")
 }
 
@@ -208,12 +211,12 @@ func NOp() Op {
 	return Op(NOP)
 }
 
-func PosOp(tag Tag) Op {
-	return Op(POS_OP) + Op(tag << POS_TAG)
+func PosOp(pos Tag) Op {
+	return Op(POS_OP) + Op(pos << POS)
 }
 
-func (self Op) PosTag() Tag {
-	return OpArg[Tag](self, POS_TAG, POS_TAG_WIDTH)
+func (self Op) Pos() Tag {
+	return OpArg[Tag](self, POS, POS_WIDTH)
 }
 
 func PushOp(val Tag) Op {

@@ -1,6 +1,3 @@
 * profile fib/fibt
-* add dot calls
-** shuffle args in parser
-* add cobra cli
 * add def prim
 ** emit/eval arg at emit time

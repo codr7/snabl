@@ -71,6 +71,8 @@ func (self *Vm) Load(path string, eval bool) error {
 		return err
 	}
 	
+	self.Fuse(pc)
+
 	if !eval {
 		return nil
 	}
@@ -83,7 +85,6 @@ func (self *Vm) Load(path string, eval bool) error {
 	}()
 	
 	self.Path = filepath.Dir(p)
-	self.Fuse(pc)
 	
 	if err := self.Eval(&pc); err != nil {
 		return err

@@ -65,7 +65,7 @@ func (self *Vm) Eval(pc *Pc) error {
 		case NOP:
 			*pc++
 		case POS_OP:
-			p := self.Tags[op.PosTag()].Data().(Pos)
+			p := self.Tags[op.Pos()].Data().(Pos)
 			pos = &p
 			*pc++
 		case PUSH_OP:
@@ -113,7 +113,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			}
 		case TRACE_OP:
 			*pc++
-			self.Code[*pc].Trace(self, *pc, pos, self.Stdout)
+			self.Code[*pc].Trace(self, *pc, pos, true, self.Stdout)
 		case RET_OP:
 			*pc = self.Calls.Pop().retPc
 		default:
