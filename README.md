@@ -7,12 +7,25 @@ Snabl is a simple Go scripting language.
 git clone https://github.com/codr7/snabl.git
 cd snabl
 go build main/snabl.go
+```
+```
 ./snabl
-Snabl v4
-
   say "hello"
 
 hello
+```
+```
+./snabl help
+Snabl v4
+
+Usage:
+snabl [command] [file1.sl] [file2.sl]...
+
+Commands:
+eval	Evaluate code and exit
+read	Dump forms and exit
+emit	Dump code and exit
+repl	Evaluate code and start REPL
 ```
 
 ## Syntax

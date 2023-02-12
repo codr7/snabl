@@ -16,8 +16,9 @@ func main() {
 	var cmd string
 	
 	if len(args) > 0 {
-		if  args[0] == "eval" || args[0] == "read" || args[0] == "emit" || args[0] == "repl" {
-			cmd = args[0]
+		a := args[0] 
+		if a == "eval" || a == "help" || a == "read" || a == "emit" || a == "repl" {
+			cmd = a
 			args = args[1:]
 		} else {
 			cmd = "eval"
@@ -26,7 +27,16 @@ func main() {
 		cmd = "repl"
 	}
 
-	if cmd == "read" {
+	if cmd == "help" {
+		fmt.Printf("Snabl v%v\n\n", snabl.VERSION)
+		fmt.Print("Usage:\n")
+		fmt.Print("snabl [command] [file1.sl] [file2.sl]...\n\n")
+		fmt.Print("Commands:\n")
+		fmt.Print("eval\tEvaluate code and exit\n")
+		fmt.Print("read\tDump forms and exit\n")
+		fmt.Print("emit\tDump code and exit\n")
+		fmt.Print("repl\tEvaluate code and start REPL\n")
+	} else if cmd == "read" {
 		var forms snabl.Forms
 
 		for _, p := range args {

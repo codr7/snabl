@@ -8,7 +8,6 @@ import (
 )
 
 func Repl(vm *Vm) {
-	fmt.Printf("Snabl v%v\n\n", VERSION)	
 	scanner := bufio.NewScanner(vm.Stdin)
 	var buffer bytes.Buffer
 
