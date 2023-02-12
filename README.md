@@ -16,8 +16,7 @@ hello
 ```
 
 ## Syntax
-Snabl uses strict prefix syntax, like Lisp but without parens.
-As a consequence, functions and macros have fixed arity.
+Snabl uses strict prefix syntax with optional parens; as a consequence, functions and macros have fixed arity.
 
 ## Types
 
