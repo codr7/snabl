@@ -1,5 +1,8 @@
 debug
 
+test T = T T
+test F = T F
+
 test T = 1 1
 test F = 1 2
 

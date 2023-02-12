@@ -42,6 +42,9 @@ NEXT:
 	case '{':
 		pos.column++
 		return self.ReadEnv(pos, in, out)
+	case '[':
+		pos.column++
+		return self.ReadSlice(pos, in, out)
 	case '"':
 		pos.column++
 		return self.ReadString(pos, in, out)
@@ -143,7 +146,7 @@ func (self *Vm) ReadId(pos *Pos, in *bufio.Reader, out *Forms) error {
 			return err
 		}
 
-		if c == '(' || c == ')' || c == '{' || c == '}' ||
+		if c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']' ||
 			unicode.IsSpace(c) || unicode.IsControl(c) {
 			in.UnreadRune()
 			break
@@ -198,6 +201,41 @@ func (self *Vm) ReadInt(pos *Pos, in *bufio.Reader, out *Forms) error {
 	}
 	
 	out.Push(NewLitForm(fpos, &self.AbcLib.IntType, v))
+	return nil
+}
+
+func (self *Vm) ReadSlice(pos *Pos, in *bufio.Reader, out *Forms) error {
+	fpos := *pos;
+	var forms Forms
+
+	for {
+		c, _, err := in.ReadRune()
+		
+		if err != nil {
+			if err == io.EOF {
+				return self.E(pos, "Open slice")
+			}
+			
+			return err
+		}
+
+		if c == ']' {
+			pos.column++
+			break
+		} else {
+			in.UnreadRune()
+		}
+
+		if err := self.ReadForm(pos, in, &forms); err != nil {
+			if err == io.EOF {
+				return self.E(pos, "Open slice")
+			}
+
+			return err
+		}
+	}
+
+	out.Push(NewSliceForm(fpos, forms.items...))
 	return nil
 }
 

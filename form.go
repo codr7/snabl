@@ -209,6 +209,34 @@ func (self *LitForm) String() string {
 	return self.value.String()
 }
 
+type SliceForm struct {
+	ItemsForm
+}
+
+func NewSliceForm(pos Pos, items...Form) *SliceForm {
+	return new(SliceForm).Init(pos, items...)
+}
+
+func (self *SliceForm) Init(pos Pos, items...Form) *SliceForm {
+	self.ItemsForm.Init(pos, items)
+	return self
+}
+
+func (self *SliceForm) Emit(args *Forms, vm *Vm, env Env) error {
+	vm.Code[vm.Emit()] = SliceOp()
+
+	if err := self.ItemsForm.Emit(args, vm, env); err != nil {
+		return err
+	}
+	
+	vm.Code[vm.Emit()] = StopOp()
+	return nil
+}
+
+func (self *SliceForm) String() string {
+	return fmt.Sprintf("[%v]", self.ItemsForm.String())
+}
+
 type Forms struct {
 	items []Form
 }

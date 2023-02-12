@@ -35,12 +35,26 @@ Snabl uses strict prefix syntax with optional parens; as a consequence, function
 
 ### Bool
 The type of boolean values.
+Booleans are either `T` or `F`.
+
+```
+  = T F
+
+F
+```
 
 ### Form
 The type of source code forms.
 
 ### Fun
 The type of functions.
+
+```
+  defun foo(x) x
+  foo 42
+
+42
+```
 
 ### Int
 The type of integer values.
@@ -57,8 +71,19 @@ The type of source code positions.
 ### Prim
 The type of primitives, functions implemented in Go.
 
+### Slice
+The type of slices.
+
+```
+  [1 2 3]
+```
+
 ### String
 The type of string values.
+
+```
+  "foo"
+```
 
 ### Time
 The type of time intervals.

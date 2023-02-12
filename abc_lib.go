@@ -17,6 +17,7 @@ type AbcLib struct {
 	NilType NilType
 	PosType PosType
 	PrimType PrimType
+	SliceType SliceType
 	StringType StringType
 	TimeType TimeType
 
@@ -37,13 +38,18 @@ func (self *AbcLib) Init(vm *Vm) {
 	self.BindType(&self.MacroType, "Macro")
 	self.BindType(&self.PosType, "Pos")
 	self.BindType(&self.PrimType, "Prim")
+	self.BindType(&self.SliceType, "Slice")
 	self.BindType(&self.StringType, "String")
 	self.BindType(&self.TimeType, "Time")
 
 	self.BindMacro(&self.BenchMacro, "bench", 2,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
-			reps := args.Pop().(*LitForm).value.d.(int)
-			vm.Code[vm.Emit()] = BenchOp(reps)
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+			
+			vm.Code[vm.Emit()] = BenchOp()
+			
 			body := args.Pop()
 			
 			if err := body.Emit(args, vm, env); err != nil {
@@ -347,6 +353,18 @@ func (self *PrimType) Dump(val V, out io.Writer) error {
 }
 
 func (self *PrimType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
+}
+
+type SliceType struct {
+	BasicType
+}
+
+func (self *SliceType) Dump(val V, out io.Writer) error {
+	return val.d.(*Slice).Dump(out)
+}
+
+func (self *SliceType) Write(val V, out io.Writer) error {
 	return self.Dump(val, out)
 }
 

@@ -2,7 +2,6 @@ package snabl
 
 import (
 	"fmt"
-	"io"
 	"time"
 )
 
@@ -22,10 +21,11 @@ func (self *Vm) Eval(pc *Pc) error {
 			self.Stack.Push(v.t, v.d)
 			*pc++
 		case BENCH_OP:
+			reps := self.Stack.Pop().d.(int)
 			startTime := time.Now()
 			var benchPc Pc
 
-			for i := 0; i < op.BenchReps(); i++ {
+			for i := 0; i < reps; i++ {
 				benchPc = *pc+1
 				
 				if err := self.Eval(&benchPc); err != nil {
@@ -92,6 +92,17 @@ func (self *Vm) Eval(pc *Pc) error {
 			f := self.Tags[op.RecFun()].d.(*Fun)
 			c.Init(c.parent, pos, f, self.Stack.Tail(f.Arity()), c.retPc)
 			*pc = f.pc
+		case SLICE_OP:
+			prevStack := self.Stack
+			self.Stack = new(Stack)
+			*pc++
+			
+			if err := self.Eval(pc); err != nil {
+				return err
+			}
+
+			prevStack.Push(&self.AbcLib.SliceType, &self.Stack.Slice)
+			self.Stack = prevStack
 		case STOP_OP:
 			*pc++
 			return nil
@@ -101,13 +112,12 @@ func (self *Vm) Eval(pc *Pc) error {
 			*pc++
 		case TEST_OP:
 			expected := self.Stack.Pop()
-			fmt.Fprintf(self.Stdout, "Testing %v", expected.String())
-
-			for _, f := range self.Tags[op.TestForm()].d.(*GroupForm).items {
+			expected.Dump(self.Stdout)
+			fs := self.Tags[op.TestForm()].d.(*GroupForm)
+			
+			for _, f := range fs.items {
 				fmt.Fprintf(self.Stdout, " %v", f.String())
 			}
-			
-			io.WriteString(self.Stdout, "...")
 			
 			*pc++
 
@@ -115,10 +125,12 @@ func (self *Vm) Eval(pc *Pc) error {
 				return err
 			}
 
-			if actual := self.Stack.Pop(); actual.Eq(*expected) {
-				fmt.Fprintln(self.Stdout, "OK")
-			} else {
-				fmt.Fprintf(self.Stdout, "FAIL: %v\n", actual.String())
+			fmt.Fprintln(self.Stdout, "")
+
+			if actual := self.Stack.Pop(); !actual.Eq(*expected) {
+				fmt.Fprintf(self.Stdout, "TEST FAILED %v ", fs.pos)
+				actual.Dump(self.Stdout)
+				fmt.Fprintln(self.Stdout, "")
 			}
 		case TRACE_OP:
 			*pc++

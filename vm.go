@@ -40,7 +40,7 @@ func (self *Vm) Init() {
 	self.Stdout = os.Stdout
 	self.AbcLib.Init(self)
 	self.Env = NewEnv(nil)
-	self.Stack = new(Stack).Init(nil)
+	self.Stack = new(Stack)
 }
 
 func (self *Vm) Path(in string) string {

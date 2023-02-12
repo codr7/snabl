@@ -1,8 +1,2 @@
-* add []
-** StackForm reader/form
-** add StackOp
-*** push new stack
-*** pop as result
-**** add StackType
 * add def prim
 ** emit/eval arg at emit time

@@ -82,6 +82,7 @@ const (
 	PUSH_TIME_OP
 	REC_OP
 	RET_OP
+	SLICE_OP
 	STOP_OP
 	SUB_INT_OP
 	TEST_OP
@@ -109,7 +110,7 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, stack bool, out io.Writer) {
 	case ARG_OP:
 		fmt.Fprintf(out, "ARG %v", self.ArgIndex())
 	case BENCH_OP:
-		fmt.Fprintf(out, "BENCH %v", self.BenchReps())
+		fmt.Fprintf(out, "BENCH")
 	case CALL_FUN_OP:
 		fmt.Fprintf(out, "CALL_FUN %v", vm.Tags[self.CallFun()].String())
 	case CALL_PRIM_OP:
@@ -138,6 +139,8 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, stack bool, out io.Writer) {
 		fmt.Fprintf(out, "REC %v", vm.Tags[self.RecFun()].String())
 	case RET_OP:
 		io.WriteString(out, "RET")
+	case SLICE_OP:
+		io.WriteString(out, "SLICE")
 	case STOP_OP:
 		io.WriteString(out, "STOP")
 	case SUB_INT_OP:
@@ -175,12 +178,8 @@ func (self Op) ArgIndex() int {
 	return OpArg[int](self, ARG_INDEX, ARG_INDEX_WIDTH)
 }
 
-func BenchOp(reps int) Op {
-	return Op(BENCH_OP) + Op(reps << BENCH_REPS)
-}
-
-func (self Op) BenchReps() int {
-	return OpArg[int](self, BENCH_REPS, BENCH_REPS_WIDTH)
+func BenchOp() Op {
+	return Op(BENCH_OP)
 }
 
 func CallFunOp(fun *Fun) Op {
@@ -297,6 +296,10 @@ func (self Op) RecFun() Tag {
 
 func RetOp() Op {
 	return Op(RET_OP)
+}
+
+func SliceOp() Op {
+	return Op(SLICE_OP)
 }
 
 func StopOp() Op {
