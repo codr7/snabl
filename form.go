@@ -8,6 +8,7 @@ import (
 
 type Form interface {
 	Emit(args *Forms, vm *Vm, env Env) error
+	Pos() Pos
 	String() string
 }
 
@@ -17,6 +18,10 @@ type BasicForm struct {
 
 func (self *BasicForm) Init(pos Pos) {
 	self.pos = pos
+}
+
+func (self *BasicForm) Pos() Pos {
+	return self.pos
 }
 
 func (self *BasicForm) Emit(args *Forms, vm *Vm, env Env) error {
@@ -233,6 +238,10 @@ func (self *Forms) Pop() Form {
 func (self *Forms) Init(items []Form) *Forms {
 	self.items = items
 	return self
+}
+
+func (self *Forms) Items() []Form {
+	return self.items
 }
 
 func (self *Forms) Len() int {

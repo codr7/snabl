@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/codr7/snabl"
 	"log"
 	"os"
@@ -15,7 +16,7 @@ func main() {
 	var cmd string
 	
 	if len(args) > 0 {
-		if args[0] == "dump" || args[0] == "eval" || args[0] == "repl" {
+		if  args[0] == "eval" || args[0] == "forms" || args[0] == "ops" || args[0] == "repl" {
 			cmd = args[0]
 			args = args[1:]
 		} else {
@@ -25,26 +26,42 @@ func main() {
 		cmd = "repl"
 	}
 
-	for _, p := range args {
-		if err := vm.Load(p, cmd != "dump"); err != nil {
-			log.Fatal(err)
-		}
-	}
-	
-	switch cmd {
-	case "dump":
-		var pos *snabl.Pos
-		
-		for pc, op := range vm.Code {
-			if op.Id() == snabl.POS_OP {
-				p := vm.Tags[op.Pos()].Data().(snabl.Pos)
-				pos = &p
-			} else {
-				op.Trace(&vm, pc, pos, false, vm.Stdout)
+	if cmd == "forms" {
+		var forms snabl.Forms
+
+		for _, p := range args {
+			if err := vm.LoadForms(p, &forms); err != nil {
+				log.Fatal(err)
 			}
 		}
-	case "eval":
-	case "repl":
-		snabl.Repl(&vm)
+
+		for _, f := range forms.Items() {
+			fmt.Println(f)
+		}
+	} else {
+		for _, p := range args {
+			if err := vm.Load(p, cmd == "eval" || cmd == "repl"); err != nil {
+				log.Fatal(err)
+			}
+		}
+		
+		switch cmd {
+		case "ops":
+			var pos *snabl.Pos
+			
+			for pc, op := range vm.Code {
+				if op.Id() == snabl.POS_OP {
+					p := vm.Tags[op.Pos()].Data().(snabl.Pos)
+					pos = &p
+				} else {
+					op.Trace(&vm, pc, pos, false, vm.Stdout)
+				}
+			}
+		case "eval":
+		case "repl":
+			snabl.Repl(&vm)
+		default:
+			log.Fatalf("%v?", cmd)
+		}
 	}
 }

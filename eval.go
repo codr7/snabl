@@ -2,6 +2,7 @@ package snabl
 
 import (
 	"fmt"
+	"io"
 	"time"
 )
 
@@ -103,8 +104,15 @@ func (self *Vm) Eval(pc *Pc) error {
 			v.Init(v.t, v.d.(int) - op.SubInt())
 			*pc++
 		case TEST_OP:
+			io.WriteString(self.Stdout, "Testing")
+
+			for _, f := range self.Tags[op.TestForm()].d.(*GroupForm).items {
+				fmt.Fprintf(self.Stdout, " %v", f.String())
+			}
+			
+			io.WriteString(self.Stdout, "...")
+			
 			expected := self.Stack.Pop()
-			fmt.Fprintf(self.Stdout, "Testing %v...", expected.String())
 			*pc++
 
 			if err := self.Eval(pc); err != nil {

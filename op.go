@@ -61,6 +61,9 @@ const (
 	SUB_INT = OP_ID_WIDTH
 	SUB_INT_WIDTH = OP_WIDTH - SUB_INT
 
+	TEST_FORM = OP_ID_WIDTH
+	TEST_FORM_WIDTH = OP_WIDTH - TEST_FORM
+
 	ADD_INT_OP = iota
 	ARG_OP
 	BENCH_OP
@@ -140,7 +143,7 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, stack bool, out io.Writer) {
 	case SUB_INT_OP:
 		fmt.Fprintf(out, "SUB_INT %v", self.SubInt())
 	case TEST_OP:
-		fmt.Fprintf(out, "TEST")
+		fmt.Fprintf(out, "TEST %v", vm.Tags[self.TestForm()].d.(Form).String())
 	default:
 		panic(fmt.Sprintf("Invalid op id: %v", id))
 	}
@@ -308,8 +311,12 @@ func (self Op) SubInt() int {
 	return OpArg[int](self, SUB_INT, SUB_INT_WIDTH)
 }
 
-func TestOp() Op {
-	return Op(TEST_OP)
+func TestOp(form Tag) Op {
+	return Op(TEST_OP) + Op(form << TEST_FORM)
+}
+
+func (self Op) TestForm() Tag {
+	return OpArg[Tag](self, TEST_FORM, TEST_FORM_WIDTH)
 }
 
 func TraceOp() Op {

@@ -106,7 +106,7 @@ repl@1:9
 ```
   load "test/all.sl"
 
-Testing T...OK
+Testing = 1 1...OK
 ...
 ```
 

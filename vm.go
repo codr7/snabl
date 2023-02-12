@@ -18,7 +18,6 @@ type Vm struct {
 	Debug bool
 	Trace bool
 	
-	Path string
 	Stdin io.Reader
 	Stdout io.Writer
 
@@ -30,6 +29,7 @@ type Vm struct {
 	Stack Slice[V]
 	Calls Slice[Call]
 	
+	path string
 	env Env
 	fun *Fun
 }
@@ -41,15 +41,16 @@ func (self *Vm) Init() {
 	self.env = NewEnv(nil)
 }
 
-func (self *Vm) Load(path string, eval bool) error {
-	var p string
+func (self *Vm) Path(in string) string {
+	if filepath.IsAbs(in) {
+		return in
+	} 
 
-	if filepath.IsAbs(path) {
-		p = path
-	} else {
-		p = filepath.Join(self.Path, path)
-	}
-	
+	return filepath.Join(self.path, in)
+}
+
+func (self *Vm) LoadForms(path string, out *Forms) error {
+	p := self.Path(path)
 	f, err := os.Open(p)
 
 	if err != nil {
@@ -57,11 +58,19 @@ func (self *Vm) Load(path string, eval bool) error {
 	}
 
 	defer f.Close()
-	var forms Forms
-
 	pos := NewPos(p, 1, 1)
 	
-	if err := self.ReadForms(pos, bufio.NewReader(f), &forms); err != nil {
+	if err := self.ReadForms(pos, bufio.NewReader(f), out); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (self *Vm) Load(path string, eval bool) error {
+	var forms Forms
+
+	if err := self.LoadForms(path, &forms); err != nil {
 		return err
 	}
 	
@@ -78,13 +87,13 @@ func (self *Vm) Load(path string, eval bool) error {
 	}
 
 	self.Code[self.Emit()] = StopOp()
-	prevPath := self.Path
+	prevPath := self.path
 
 	defer func() {
-		self.Path = prevPath
+		self.path = prevPath
 	}()
 	
-	self.Path = filepath.Dir(p)
+	self.path = filepath.Dir(self.Path(path))
 	
 	if err := self.Eval(&pc); err != nil {
 		return err

@@ -129,13 +129,16 @@ func (self *AbcLib) Init(vm *Vm) {
 			if err := args.Pop().Emit(args, vm, env); err != nil {
 				return err
 			}
-			
-			vm.Code[vm.Emit()] = TestOp()
 
+			pc := vm.Emit()
+			forms := *args
+			
 			if err := args.Pop().Emit(args, vm, env); err != nil {
 				return err
 			}
 
+			f := NewGroupForm(forms.Top().Pos(), forms.items[:forms.Len()-args.Len()]...)
+			vm.Code[pc] = TestOp(vm.Tag(&vm.AbcLib.FormType, f))
 			vm.Code[vm.Emit()] = StopOp()			
 			return nil
 		})
