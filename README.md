@@ -67,6 +67,12 @@ The type of types.
 ### Pos
 The type of source code positions.
 
+```
+  1 2 3 pos
+  
+repl@1:7
+```
+
 ### Prim
 The type of primitives, functions implemented in Go.
 
@@ -132,24 +138,20 @@ panic: repl@1:7 Error: failing
 3
 ```
 
-`pos` may be used to get the current source position.
-
-```
-  1 2 say pos 3
-  
-repl@1:9
-3
-```
-
 ## Testing
 `test expected expr` evaluates `expr` and compares the result with `expected`.
 
 ```
-  load "test/all.sl"
-
-Testing T = 1 1...OK
-...
+  test T = 1 1
+  
+T = 1 1
+  test T = 1 2
+  
+T = 1 2
+TEST FAILED repl@1:8 F
 ```
+
+You may find more examples [here](https://github.com/codr7/snabl/blob/main/test/all.sl).
 
 ## Benchmarking
 `bench n expr` evaluates `expr` `n` times and returns elapsed time.

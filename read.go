@@ -36,17 +36,13 @@ NEXT:
 	case ' ':
 		pos.column++
 		goto NEXT
-	case '(':
-		pos.column++
-		return self.ReadGroup(pos, in, out)
 	case '{':
-		pos.column++
 		return self.ReadEnv(pos, in, out)
+	case '(':
+		return self.ReadGroup(pos, in, out)
 	case '[':
-		pos.column++
 		return self.ReadSlice(pos, in, out)
 	case '"':
-		pos.column++
 		return self.ReadString(pos, in, out)
 	default:
 		if unicode.IsDigit(c) {
@@ -63,6 +59,7 @@ NEXT:
 
 func (self *Vm) ReadEnv(pos *Pos, in *bufio.Reader, out *Forms) error {
 	fpos := *pos;
+	pos.column++
 	var forms Forms
 
 	for {
@@ -98,6 +95,7 @@ func (self *Vm) ReadEnv(pos *Pos, in *bufio.Reader, out *Forms) error {
 
 func (self *Vm) ReadGroup(pos *Pos, in *bufio.Reader, out *Forms) error {
 	fpos := *pos;
+	pos.column++
 	var forms Forms
 
 	for {
@@ -206,6 +204,7 @@ func (self *Vm) ReadInt(pos *Pos, in *bufio.Reader, out *Forms) error {
 
 func (self *Vm) ReadSlice(pos *Pos, in *bufio.Reader, out *Forms) error {
 	fpos := *pos;
+	pos.column++
 	var forms Forms
 
 	for {
@@ -241,6 +240,7 @@ func (self *Vm) ReadSlice(pos *Pos, in *bufio.Reader, out *Forms) error {
 
 func (self *Vm) ReadString(pos *Pos, in *bufio.Reader, out *Forms) error {
 	fpos := *pos
+	pos.column++
 	var buf strings.Builder
 	
 	for {
