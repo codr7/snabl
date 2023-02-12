@@ -104,7 +104,8 @@ func (self *Vm) Eval(pc *Pc) error {
 			v.Init(v.t, v.d.(int) - op.SubInt())
 			*pc++
 		case TEST_OP:
-			io.WriteString(self.Stdout, "Testing")
+			expected := self.Stack.Pop()
+			fmt.Fprintf(self.Stdout, "Testing %v", expected.String())
 
 			for _, f := range self.Tags[op.TestForm()].d.(*GroupForm).items {
 				fmt.Fprintf(self.Stdout, " %v", f.String())
@@ -112,7 +113,6 @@ func (self *Vm) Eval(pc *Pc) error {
 			
 			io.WriteString(self.Stdout, "...")
 			
-			expected := self.Stack.Pop()
 			*pc++
 
 			if err := self.Eval(pc); err != nil {
@@ -122,7 +122,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			if actual := self.Stack.Pop(); actual.Eq(*expected) {
 				fmt.Fprintln(self.Stdout, "OK")
 			} else {
-				fmt.Fprintln(self.Stdout, "FAIL")
+				fmt.Fprintf(self.Stdout, "FAIL: %v\n", actual.String())
 			}
 		case TRACE_OP:
 			*pc++
