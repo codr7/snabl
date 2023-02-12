@@ -104,7 +104,7 @@ panic: repl@1:7 Error: failing
 3
 ```
 
-`pos` may be used to push the current source position.
+`pos` may be used to get the current source position.
 
 ```
   1 2 say pos 3
