@@ -120,7 +120,7 @@ Error: failing
   
   fail "failing"
   
-panic: repl@1:7 Error: failing
+panic: repl@1:6 Error: failing
 ```
 
 `trace` may be used to toggle tracing of operations and stack contents.

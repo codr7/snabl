@@ -31,7 +31,7 @@ NEXT:
 	switch c {
 	case '\n':
 		pos.line++
-		pos.column = 0
+		pos.column = 1
 		goto NEXT
 	case ' ':
 		pos.column++
@@ -130,8 +130,8 @@ func (self *Vm) ReadGroup(pos *Pos, in *bufio.Reader, out *Forms) error {
 }
 
 func (self *Vm) ReadId(pos *Pos, in *bufio.Reader, out *Forms) error {
-	var buf strings.Builder
 	fpos := *pos
+	var buf strings.Builder
 	
 	for {
 		c, _, err := in.ReadRune()
