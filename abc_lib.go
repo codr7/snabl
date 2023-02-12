@@ -23,7 +23,8 @@ type AbcLib struct {
 
 	BenchMacro, DebugMacro, DefunMacro, IfMacro, PosMacro, TestMacro, TraceMacro Macro
 	
-	AddPrim, EqPrim, FailPrim, GtPrim, LenPrim, LoadPrim, SayPrim, SubPrim Prim
+	AddPrim, EqPrim, FailPrim, GtPrim, LenPrim, LoadPrim, MinutesPrim, MsecondsPrim, SayPrim, SleepPrim,
+	SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
@@ -197,6 +198,18 @@ func (self *AbcLib) Init(vm *Vm) {
 		return vm.Load(p, true)
 	})
 
+	self.BindPrim(&self.MinutesPrim, "minutes", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		v := vm.Stack.Top(0)
+		v.Init(&vm.AbcLib.TimeType, time.Minute * time.Duration(v.d.(int)))
+		return nil
+	})
+
+	self.BindPrim(&self.MsecondsPrim, "mseconds", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		v := vm.Stack.Top(0)
+		v.Init(&vm.AbcLib.TimeType, time.Millisecond * time.Duration(v.d.(int)))
+		return nil
+	})
+
 	self.BindPrim(&self.SayPrim, "say", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		if err := vm.Stack.Pop().Write(vm.Stdout); err != nil {
 			return err
@@ -209,6 +222,11 @@ func (self *AbcLib) Init(vm *Vm) {
 		return nil
 	})
 
+	self.BindPrim(&self.SleepPrim, "sleep", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		time.Sleep(vm.Stack.Pop().d.(time.Duration))
+		return nil
+	})
+	
 	self.BindPrim(&self.SubPrim, "-", 2, func(self *Prim, vm *Vm, pos *Pos) error {
 		b := vm.Stack.Pop().d.(int)
 		a := vm.Stack.Top(0)

@@ -97,6 +97,12 @@ The type of string values.
 ### Time
 The type of time intervals.
 
+```
+  minutes 10
+  
+10m0s
+```
+
 ## Environments
 Curlies may be used to create new compile time environments.
 
@@ -157,11 +163,16 @@ You may find more examples [here](https://github.com/codr7/snabl/blob/main/test/
 `bench n expr` evaluates `expr` `n` times and returns elapsed time.
 
 ```
+bench 10 sleep mseconds 100
+  
+1.004674633s
+```
+
+```
   load "bench/fib.sl"
 
 2.807621686s
 ```
-
 ```
   load "bench/fibt.sl"
 
