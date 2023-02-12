@@ -189,7 +189,7 @@ func (self *Vm) FuseRec(startPc Pc, prevOp *Op) int {
 		}
 
 		if prevOp != nil && prevOp.Id() == CALL_FUN_OP && op.Id() == RET_OP {
-			fmt.Fprintf(self.Stdout, "Fusing %v CALL_FUN RET\n", pc);
+			fmt.Fprintf(self.Stdout, "Fusing %v REC\n", pc);
 			*prevOp = RecOp(self.Tags[prevOp.CallFun()].d.(*Fun))
 			count++
 		}
