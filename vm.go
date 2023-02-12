@@ -26,19 +26,21 @@ type Vm struct {
 	Tags []V
 	
 	Code []Op
-	Stack Slice[V]
-	Calls Slice[Call]
+
+	Env Env
+	Stack *Stack
 	
 	path string
-	env Env
 	fun *Fun
+	call *Call
 }
 
 func (self *Vm) Init() {
 	self.Stdin = os.Stdin
 	self.Stdout = os.Stdout
 	self.AbcLib.Init(self)
-	self.env = NewEnv(nil)
+	self.Env = NewEnv(nil)
+	self.Stack = new(Stack).Init(nil)
 }
 
 func (self *Vm) Path(in string) string {
@@ -76,7 +78,7 @@ func (self *Vm) Load(path string, eval bool) error {
 	
 	pc := self.EmitPc()
 
-	if err := forms.Emit(self, self.env); err != nil {
+	if err := forms.Emit(self, self.Env); err != nil {
 		return err
 	}
 	
@@ -116,10 +118,6 @@ func (self *Vm) E(pos *Pos, spec string, args...interface{}) *E {
 	}
 
 	return err
-}
-
-func (self *Vm) Env() Env {
-	return self.env
 }
 
 func (self *Vm) EmitNoTrace() Pc {

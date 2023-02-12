@@ -39,7 +39,7 @@ func Repl(vm *Vm) {
 			buffer.Reset()
 			pc := vm.EmitPc()
 
-			if err := forms.Emit(vm, vm.Env()); err != nil {
+			if err := forms.Emit(vm, vm.Env); err != nil {
 				fmt.Fprintln(vm.Stdout, err)
 				goto NEXT
 			}

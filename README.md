@@ -116,11 +116,11 @@ Testing T = 1 1...OK
 ```
   load "bench/fib.sl"
 
-3.261481578s
+2.807621686s
 ```
 
 ```
   load "bench/fibt.sl"
 
-1.821470141s
+1.358420848s
 ```

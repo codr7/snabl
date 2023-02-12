@@ -10,13 +10,13 @@ import (
 func main() {
 	var vm snabl.Vm
 	vm.Init()
-	vm.Env().Import(&vm.AbcLib, &vm, nil)
+	vm.Env.Import(&vm.AbcLib, &vm, nil)
 
 	args := os.Args[1:]
 	var cmd string
 	
 	if len(args) > 0 {
-		if  args[0] == "eval" || args[0] == "forms" || args[0] == "ops" || args[0] == "repl" {
+		if  args[0] == "eval" || args[0] == "read" || args[0] == "emit" || args[0] == "repl" {
 			cmd = args[0]
 			args = args[1:]
 		} else {
@@ -26,7 +26,7 @@ func main() {
 		cmd = "repl"
 	}
 
-	if cmd == "forms" {
+	if cmd == "read" {
 		var forms snabl.Forms
 
 		for _, p := range args {
@@ -46,7 +46,7 @@ func main() {
 		}
 		
 		switch cmd {
-		case "ops":
+		case "emit":
 			var pos *snabl.Pos
 			
 			for pc, op := range vm.Code {

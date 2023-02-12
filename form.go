@@ -254,7 +254,7 @@ func (self *Forms) Push(form Form) {
 
 func (self *Forms) Emit(vm *Vm, env Env) error {
 	for len(self.items) > 0 {
-		if err := self.Pop().Emit(self, vm, vm.Env()); err != nil {
+		if err := self.Pop().Emit(self, vm, vm.Env); err != nil {
 			return err
 		}
 	}

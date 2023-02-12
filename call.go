@@ -6,10 +6,20 @@ import (
 )
 
 type Call struct {
+	parent *Call
 	pos *Pos
 	fun *Fun
 	args []V
 	retPc Pc
+}
+
+func (self *Call) Init(parent *Call, pos *Pos, fun *Fun, args []V, retPc Pc) *Call {
+	self.parent = parent
+	self.pos = pos
+	self.fun = fun
+	self.args = args
+	self.retPc = retPc
+	return self
 }
 
 func (self Call) String() string {

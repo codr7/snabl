@@ -1,29 +1,25 @@
 package snabl
 
 import (
-	"fmt"
 	"io"
 	"strings"
 )
 
-type Slice [T fmt.Stringer] struct {
-	items []T
+type Stack struct {
+	parent *Stack
+	items []V
 }
 
-func NewSlice[T fmt.Stringer](items []T) *Slice[T] {
-	return new(Slice[T]).Init(items)
-}
-
-func (self *Slice[T]) Init(items []T) *Slice[T] {
-	self.items = items
+func (self *Stack) Init(parent *Stack) *Stack {
+	self.parent = parent
 	return self
 }
 
-func (self *Slice[T]) Clear() {
+func (self *Stack) Clear() {
 	self.items = nil
 }
 
-func (self Slice[T]) Dump(out io.Writer) error {
+func (self Stack) Dump(out io.Writer) error {
 	if _, err := io.WriteString(out, "["); err != nil {
 		return err
 	}
@@ -43,11 +39,11 @@ func (self Slice[T]) Dump(out io.Writer) error {
 	return nil
 }
 
-func (self Slice[T]) Len() int {
+func (self Stack) Len() int {
 	return len(self.items)
 }
 
-func (self Slice[T]) Top(i int) *T {
+func (self Stack) Top(i int) *V {
 	n := len(self.items) - 1
 	
 	if n < i {
@@ -57,7 +53,7 @@ func (self Slice[T]) Top(i int) *T {
 	return &self.items[n-i]
 }
 
-func (self *Slice[T]) Pop() *T {
+func (self *Stack) Pop() *V {
 	i := len(self.items)-1
 	
 	if i < 0 {
@@ -69,24 +65,24 @@ func (self *Slice[T]) Pop() *T {
 	return &v
 }
 
-func (self *Slice[T]) Tail(n int) []T {
+func (self *Stack) Tail(n int) []V {
 	l := len(self.items)
 	
 	if l < n {
 		return nil
 	}
 
-	out := make([]T, n)
+	out := make([]V, n)
 	copy(out, self.items[l-n:])
 	self.items = self.items[:l-n]
 	return out
 }
 
-func (self *Slice[T]) Push(val T) {
-	self.items = append(self.items, val)
+func (self *Stack) Push(t Type, d any) {
+	self.items = append(self.items, V{t: t, d: d})
 }
 
-func (self *Slice[T]) String() string {
+func (self Stack) String() string {
 	var out strings.Builder
 	self.Dump(&out)
 	return out.String()

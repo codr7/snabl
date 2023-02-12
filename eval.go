@@ -18,8 +18,8 @@ func (self *Vm) Eval(pc *Pc) error {
 			v.Init(v.t, v.d.(int) + op.AddInt())
 			*pc++
 		case ARG_OP:
-			v := self.Calls.Top(0).args[op.ArgIndex()]
-			self.Stack.Push(v)
+			v := self.call.args[op.ArgIndex()]
+			self.Stack.Push(v.t, v.d)
 			*pc++
 		case BENCH_OP:
 			startTime := time.Now()
@@ -35,14 +35,11 @@ func (self *Vm) Eval(pc *Pc) error {
 				self.Stack.Clear()
 			}
 
-			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: time.Now().Sub(startTime)})
+			self.Stack.Push(&self.AbcLib.TimeType, time.Now().Sub(startTime))
 			*pc = benchPc
 		case CALL_FUN_OP:
 			f := self.Tags[op.CallFun()].d.(*Fun)
-			
-			self.Calls.Push(Call{
-				pos: pos, fun: f, args: self.Stack.Tail(f.Arity()), retPc: *pc+1})
-			
+			self.call = new(Call).Init(self.call, pos, f, self.Stack.Tail(f.Arity()), *pc+1)
 			*pc = f.pc
 		case CALL_PRIM_OP:
 			p := self.Tags[op.CallPrim()].d.(*Prim)
@@ -75,26 +72,25 @@ func (self *Vm) Eval(pc *Pc) error {
 			pos = &p
 			*pc++
 		case PUSH_OP:
-			self.Stack.Push(self.Tags[op.PushVal()])
+			v := self.Tags[op.PushVal()]
+			self.Stack.Push(v.t, v.d)
 			*pc++
 		case PUSH_BOOL_OP:
-			self.Stack.Push(V{t: &self.AbcLib.BoolType, d: op.PushBool()})
+			self.Stack.Push(&self.AbcLib.BoolType, op.PushBool())
 			*pc++
 		case PUSH_INT_OP:
-			self.Stack.Push(V{t: &self.AbcLib.IntType, d: op.PushInt()})
+			self.Stack.Push(&self.AbcLib.IntType, op.PushInt())
 			*pc++
 		case PUSH_NIL_OP:
-			self.Stack.Push(V{t: &self.AbcLib.NilType, d: nil})
+			self.Stack.Push(&self.AbcLib.NilType, nil)
 			*pc++
 		case PUSH_TIME_OP:
-			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: op.PushTime()})
+			self.Stack.Push(&self.AbcLib.TimeType, op.PushTime())
 			*pc++
 		case REC_OP:
-			c := self.Calls.Top(0)
-			c.pos = pos
+			c := self.call
 			f := self.Tags[op.RecFun()].d.(*Fun)
-			c.fun = f
-			c.args = self.Stack.Tail(f.Arity())
+			c.Init(c.parent, pos, f, self.Stack.Tail(f.Arity()), c.retPc)
 			*pc = f.pc
 		case STOP_OP:
 			*pc++
@@ -128,7 +124,9 @@ func (self *Vm) Eval(pc *Pc) error {
 			*pc++
 			self.Code[*pc].Trace(self, *pc, pos, true, self.Stdout)
 		case RET_OP:
-			*pc = self.Calls.Pop().retPc
+			c := self.call
+			self.call = c.parent
+			*pc = c.retPc
 		default:
 			panic(fmt.Sprintf("Invalid op id: %v", id))
 		}
