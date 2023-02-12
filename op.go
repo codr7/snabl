@@ -20,15 +20,6 @@ const (
 	ARG_INDEX = OP_ID_WIDTH
 	ARG_INDEX_WIDTH = OP_WIDTH - ARG_INDEX
 
-	ARG2_INDEX1 = OP_ID_WIDTH
-	ARG2_INDEX_WIDTH = (OP_WIDTH - ARG2_INDEX1) / 2
-	ARG2_INDEX2 = ARG2_INDEX1 + ARG2_INDEX_WIDTH
-
-	ARG3_INDEX1 = OP_ID_WIDTH
-	ARG3_INDEX_WIDTH = (OP_WIDTH - ARG3_INDEX1) / 3
-	ARG3_INDEX2 = ARG3_INDEX1 + ARG3_INDEX_WIDTH
-	ARG3_INDEX3 = ARG3_INDEX2 + ARG3_INDEX_WIDTH
-
 	BENCH_REPS = OP_ID_WIDTH
 	BENCH_REPS_WIDTH = OP_WIDTH - BENCH_REPS
 
@@ -72,8 +63,6 @@ const (
 
 	ADD_INT_OP = iota
 	ARG_OP
-	ARG2_OP
-	ARG3_OP
 	BENCH_OP
 	CALL_FUN_OP
 	CALL_PRIM_OP
@@ -116,10 +105,6 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, stack bool, out io.Writer) {
 		fmt.Fprintf(out, "ADD_INT %v", self.AddInt())
 	case ARG_OP:
 		fmt.Fprintf(out, "ARG %v", self.ArgIndex())
-	case ARG2_OP:
-		fmt.Fprintf(out, "ARG2 %v %v %v", self.Arg2Index1(), self.Arg2Index2())
-	case ARG3_OP:
-		fmt.Fprintf(out, "ARG3 %v %v %v", self.Arg3Index1(), self.Arg3Index2(), self.Arg3Index3())
 	case BENCH_OP:
 		fmt.Fprintf(out, "BENCH %v", self.BenchReps())
 	case CALL_FUN_OP:
@@ -185,34 +170,6 @@ func ArgOp(i int) Op {
 
 func (self Op) ArgIndex() int {
 	return OpArg[int](self, ARG_INDEX, ARG_INDEX_WIDTH)
-}
-
-func Arg2Op(i1, i2 int) Op {
-	return Op(ARG2_OP) + Op(i1 << ARG2_INDEX1) + Op(i2 << ARG2_INDEX2)
-}
-
-func (self Op) Arg2Index1() int {
-	return OpArg[int](self, ARG2_INDEX1, ARG2_INDEX_WIDTH)
-}
-
-func (self Op) Arg2Index2() int {
-	return OpArg[int](self, ARG2_INDEX2, ARG2_INDEX_WIDTH)
-}
-
-func Arg3Op(i1, i2, i3 int) Op {
-	return Op(ARG3_OP) + Op(i1 << ARG3_INDEX1) + Op(i2 << ARG3_INDEX2) + Op(i3 << ARG3_INDEX3)
-}
-
-func (self Op) Arg3Index1() int {
-	return OpArg[int](self, ARG3_INDEX1, ARG3_INDEX_WIDTH)
-}
-
-func (self Op) Arg3Index2() int {
-	return OpArg[int](self, ARG3_INDEX2, ARG3_INDEX_WIDTH)
-}
-
-func (self Op) Arg3Index3() int {
-	return OpArg[int](self, ARG3_INDEX3, ARG3_INDEX_WIDTH)
 }
 
 func BenchOp(reps int) Op {

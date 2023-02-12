@@ -20,17 +20,6 @@ func (self *Vm) Eval(pc *Pc) error {
 			v := self.Calls.Top(0).args[op.ArgIndex()]
 			self.Stack.Push(v)
 			*pc++
-		case ARG2_OP:
-			c := self.Calls.Top(0)
-			self.Stack.Push(c.args[op.Arg2Index1()])
-			self.Stack.Push(c.args[op.Arg2Index2()])
-			*pc++
-		case ARG3_OP:
-			c := self.Calls.Top(0)
-			self.Stack.Push(c.args[op.Arg3Index1()])
-			self.Stack.Push(c.args[op.Arg3Index2()])
-			self.Stack.Push(c.args[op.Arg3Index3()])
-			*pc++
 		case BENCH_OP:
 			startTime := time.Now()
 			var benchPc Pc

@@ -6,8 +6,6 @@ import (
 
 func (self *Vm) Fuse(startPc Pc) {
 	for self.FuseAddInt(startPc, nil) +
-		self.FuseArg2(startPc, nil) +
-		self.FuseArg3(startPc, nil) +
 		self.FuseEqInt(startPc, nil) +		
 		self.FuseGoto(startPc, nil) +
 		self.FuseGtInt(startPc, nil) +
@@ -42,58 +40,6 @@ func (self *Vm) FuseAddInt(startPc Pc, prevOp *Op) int {
 			count++
 		}
 		
-		prevOp = op
-		pc++
-	}
-
-	return count
-}
-
-func (self *Vm) FuseArg2(startPc Pc, prevOp *Op) int {
-	count := 0
-	
-	for pc := startPc; pc < len(self.Code); {
-		op := &self.Code[pc]
-
-		switch op.Id() {
-		case NOP, POS_OP, TRACE_OP:
-			pc++
-			continue
-		}
-
-		if prevOp != nil && prevOp.Id() == ARG_OP && op.Id() == ARG_OP {
-			fmt.Fprintf(self.Stdout, "Fusing %v ARG2\n", pc);
-			*op = Arg2Op(prevOp.ArgIndex(), op.ArgIndex())
-			*prevOp = NOp()
-			count++
-		}
-
-		prevOp = op
-		pc++
-	}
-
-	return count
-}
-
-func (self *Vm) FuseArg3(startPc Pc, prevOp *Op) int {
-	count := 0
-	
-	for pc := startPc; pc < len(self.Code); {
-		op := &self.Code[pc]
-
-		switch op.Id() {
-		case NOP, POS_OP, TRACE_OP:
-			pc++
-			continue
-		}
-
-		if prevOp != nil && prevOp.Id() == ARG2_OP && op.Id() == ARG_OP {
-			fmt.Fprintf(self.Stdout, "Fusing %v ARG3\n", pc);
-			*op = Arg3Op(prevOp.Arg2Index1(), prevOp.Arg2Index2(), op.ArgIndex())
-			*prevOp = NOp()
-			count++
-		}
-
 		prevOp = op
 		pc++
 	}
