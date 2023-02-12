@@ -1,5 +1,5 @@
 # Snabl
-Snabl is a simple scripting language implemented in Go.
+Snabl is a simple Go scripting language.
 
 ## Setup
 
