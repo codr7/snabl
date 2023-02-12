@@ -20,11 +20,11 @@ const (
 	BENCH_REPS = OP_ID_WIDTH
 	BENCH_REPS_WIDTH = OP_WIDTH - BENCH_REPS
 
-	CALL_FUN_TAG = OP_ID_WIDTH
-	CALL_FUN_TAG_WIDTH = OP_WIDTH - CALL_FUN_TAG
+	CALL_FUN = OP_ID_WIDTH
+	CALL_FUN_WIDTH = OP_WIDTH - CALL_FUN
 
-	CALL_PRIM_TAG = OP_ID_WIDTH
-	CALL_PRIM_TAG_WIDTH = OP_WIDTH - CALL_PRIM_TAG
+	CALL_PRIM = OP_ID_WIDTH
+	CALL_PRIM_WIDTH = OP_WIDTH - CALL_PRIM
 
 	DEC_DELTA = OP_ID_WIDTH
 	DEC_DELTA_WIDTH = OP_WIDTH - DEC_DELTA
@@ -52,6 +52,9 @@ const (
 	PUSH_TIME_VAL = OP_ID_WIDTH
 	PUSH_TIME_VAL_WIDTH  = OP_WIDTH - PUSH_TIME_VAL
 
+	REC_FUN = OP_ID_WIDTH
+	REC_FUN_WIDTH = OP_WIDTH - REC_FUN
+	
 	ARG_OP = iota
 	BENCH_OP
 	CALL_FUN_OP
@@ -68,6 +71,7 @@ const (
 	PUSH_INT_OP
 	PUSH_NIL_OP
 	PUSH_TIME_OP
+	REC_OP
 	RET_OP
 	STOP_OP
 	TEST_OP
@@ -95,9 +99,9 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 	case BENCH_OP:
 		fmt.Fprintf(out, "BENCH %v", self.BenchReps())
 	case CALL_FUN_OP:
-		fmt.Fprintf(out, "CALL_FUN %v", vm.Tags[self.CallFunTag()].String())
+		fmt.Fprintf(out, "CALL_FUN %v", vm.Tags[self.CallFun()].String())
 	case CALL_PRIM_OP:
-		fmt.Fprintf(out, "CALL_PRIM %v", vm.Tags[self.CallPrimTag()].String())
+		fmt.Fprintf(out, "CALL_PRIM %v", vm.Tags[self.CallPrim()].String())
 	case CLEAR_OP:
 		io.WriteString(out, "CLEAR")
 	case DEC_OP:
@@ -120,6 +124,8 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, out io.Writer) {
 		io.WriteString(out, "PUSH_NIL")
 	case PUSH_TIME_OP:
 		fmt.Fprintf(out, "PUSH_TIME %v", self.PushTimeVal())
+	case REC_OP:
+		fmt.Fprintf(out, "REC %v", vm.Tags[self.RecFun()].String())
 	case RET_OP:
 		io.WriteString(out, "RET")
 	case STOP_OP:
@@ -155,19 +161,19 @@ func (self Op) BenchReps() int {
 }
 
 func CallFunOp(fun *Fun) Op {
-	return Op(CALL_FUN_OP) + Op(fun.tag << CALL_FUN_TAG)
+	return Op(CALL_FUN_OP) + Op(fun.tag << CALL_FUN)
 }
 
-func (self Op) CallFunTag() Tag {
-	return OpArg[Tag](self, CALL_FUN_TAG, CALL_FUN_TAG_WIDTH)
+func (self Op) CallFun() Tag {
+	return OpArg[Tag](self, CALL_FUN, CALL_FUN_WIDTH)
 }
 
 func CallPrimOp(prim *Prim) Op {
-	return Op(CALL_PRIM_OP) + Op(prim.tag << CALL_PRIM_TAG)
+	return Op(CALL_PRIM_OP) + Op(prim.tag << CALL_PRIM)
 }
 
-func (self Op) CallPrimTag() Tag {
-	return OpArg[Tag](self, CALL_PRIM_TAG, CALL_PRIM_TAG_WIDTH)
+func (self Op) CallPrim() Tag {
+	return OpArg[Tag](self, CALL_PRIM, CALL_PRIM_WIDTH)
 }
 
 func ClearOp() Op {
@@ -260,6 +266,14 @@ func PushTimeOp(val time.Duration) Op {
 
 func (self Op) PushTimeVal() time.Duration {
 	return OpArg[time.Duration](self, PUSH_TIME_VAL, PUSH_TIME_VAL_WIDTH)
+}
+
+func RecOp(fun *Fun) Op {
+	return Op(REC_OP) + Op(fun.tag << REC_FUN)
+}
+
+func (self Op) RecFun() Tag {
+	return OpArg[Tag](self, REC_FUN, REC_FUN_WIDTH)
 }
 
 func RetOp() Op {

@@ -33,14 +33,14 @@ func (self *Vm) Eval(pc *Pc) error {
 			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: time.Now().Sub(startTime)})
 			*pc = benchPc
 		case CALL_FUN_OP:
-			f := self.Tags[op.CallFunTag()].d.(*Fun)
+			f := self.Tags[op.CallFun()].d.(*Fun)
 			
 			self.Calls.Push(Call{
 				pos: pos, fun: f, args: self.Stack.Tail(f.Arity()), retPc: *pc+1})
 			
 			*pc = f.pc
 		case CALL_PRIM_OP:
-			p := self.Tags[op.CallPrimTag()].d.(*Prim)
+			p := self.Tags[op.CallPrim()].d.(*Prim)
 			
 			if err := p.Call(self, pos); err != nil {
 				return err
@@ -87,6 +87,13 @@ func (self *Vm) Eval(pc *Pc) error {
 		case PUSH_TIME_OP:
 			self.Stack.Push(V{t: &self.AbcLib.TimeType, d: op.PushTimeVal()})
 			*pc++
+		case REC_OP:
+			c := self.Calls.Top(0)
+			c.pos = pos
+			f := self.Tags[op.RecFun()].d.(*Fun)
+			c.fun = f
+			c.args = self.Stack.Tail(f.Arity())
+			*pc = f.pc
 		case STOP_OP:
 			*pc++
 			return nil
