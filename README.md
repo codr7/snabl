@@ -60,5 +60,5 @@ Testing T...OK
 ```
   load "bench/fibt.sl"
 
-1.834702154s
+1.821470141s
 ```
