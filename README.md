@@ -35,7 +35,6 @@ Snabl uses strict prefix syntax with optional parens; as a consequence, function
 
 ### Bool
 The type of boolean values.
-Booleans are either `T` or `F`.
 
 ```
   = T F
@@ -75,14 +74,18 @@ The type of primitives, functions implemented in Go.
 The type of slices.
 
 ```
-  [1 2 3]
+  len [1 2 3]
+
+3
 ```
 
 ### String
 The type of string values.
 
 ```
-  "foo"
+  len "foo"
+
+3
 ```
 
 ### Time

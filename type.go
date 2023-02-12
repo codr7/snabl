@@ -14,6 +14,11 @@ type Type interface {
 	Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error
 }
 
+type SeqType interface {
+	Type
+	Len(val V) int
+}
+
 type BasicType struct {
 	name string
 }

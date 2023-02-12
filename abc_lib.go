@@ -23,7 +23,7 @@ type AbcLib struct {
 
 	BenchMacro, DebugMacro, DefunMacro, IfMacro, PosMacro, TestMacro, TraceMacro Macro
 	
-	AddPrim, EqPrim, FailPrim, GtPrim, LoadPrim, SayPrim, SubPrim Prim
+	AddPrim, EqPrim, FailPrim, GtPrim, LenPrim, LoadPrim, SayPrim, SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
@@ -177,6 +177,18 @@ func (self *AbcLib) Init(vm *Vm) {
 		b := vm.Stack.Pop().d.(int)
 		a := vm.Stack.Top(0)
 		a.Init(&vm.AbcLib.BoolType, a.d.(int) > b)
+		return nil
+	})
+
+	self.BindPrim(&self.LenPrim, "len", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		v := vm.Stack.Pop()
+		t, ok := v.t.(SeqType)
+
+		if !ok {
+			return vm.E(pos, "Expected sequence: %v", v.String())
+		}
+
+		vm.Stack.Push(&vm.AbcLib.IntType, t.Len(*v))
 		return nil
 	})
 
@@ -368,6 +380,10 @@ func (self *SliceType) Write(val V, out io.Writer) error {
 	return self.Dump(val, out)
 }
 
+func (self *SliceType) Len(val V) int {
+	return val.d.(*Slice).Len()
+}
+
 type StringType struct {
 	BasicType
 }
@@ -380,6 +396,10 @@ func (self *StringType) Dump(val V, out io.Writer) error {
 func (self *StringType) Write(val V, out io.Writer) error {
 	_, err := io.WriteString(out, val.d.(string))
 	return err
+}
+
+func (self *StringType) Len(val V) int {
+	return len(val.d.(string))
 }
 
 type TimeType struct {
