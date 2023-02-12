@@ -51,6 +51,10 @@ func (self *Vm) Eval(pc *Pc) error {
 			}
 
 			*pc++
+		case EQ_INT_OP:
+			v := self.Stack.Top(0)
+			v.Init(&self.AbcLib.BoolType, v.d.(int) == op.EqInt())
+			*pc++
 		case GOTO_OP:
 			*pc = op.GotoPc()
 		case GT_INT_OP:

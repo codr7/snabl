@@ -29,6 +29,9 @@ const (
 	CALL_PRIM = OP_ID_WIDTH
 	CALL_PRIM_WIDTH = OP_WIDTH - CALL_PRIM
 
+	EQ_INT = OP_ID_WIDTH
+	EQ_INT_WIDTH = OP_WIDTH - EQ_INT
+
 	GOTO_PC = OP_ID_WIDTH
 	GOTO_PC_WIDTH = OP_WIDTH - GOTO_PC
 
@@ -63,6 +66,7 @@ const (
 	BENCH_OP
 	CALL_FUN_OP
 	CALL_PRIM_OP
+	EQ_INT_OP
 	GOTO_OP
 	GT_INT_OP
 	IF_OP
@@ -107,6 +111,8 @@ func (self Op) Trace(vm *Vm, pc Pc, pos *Pos, stack bool, out io.Writer) {
 		fmt.Fprintf(out, "CALL_FUN %v", vm.Tags[self.CallFun()].String())
 	case CALL_PRIM_OP:
 		fmt.Fprintf(out, "CALL_PRIM %v", vm.Tags[self.CallPrim()].String())
+	case EQ_INT_OP:
+		fmt.Fprintf(out, "EQ_INT %v", self.EqInt())
 	case GOTO_OP:
 		fmt.Fprintf(out, "GOTO %v", self.GotoPc())
 	case GT_INT_OP:
@@ -188,6 +194,14 @@ func CallPrimOp(prim *Prim) Op {
 
 func (self Op) CallPrim() Tag {
 	return OpArg[Tag](self, CALL_PRIM, CALL_PRIM_WIDTH)
+}
+
+func EqIntOp(val int) Op {
+	return Op(EQ_INT_OP) + Op(val << EQ_INT)
+}
+
+func (self Op) EqInt() int {
+	return OpArg[int](self, EQ_INT, EQ_INT_WIDTH)
 }
 
 func GotoOp(pc Pc) Op {

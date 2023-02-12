@@ -6,6 +6,7 @@ import (
 
 func (self *Vm) Fuse(startPc Pc) {
 	for self.FuseAddInt(startPc, nil) +
+		self.FuseEqInt(startPc, nil) +		
 		self.FuseGoto(startPc, nil) +
 		self.FuseGtInt(startPc, nil) +
 		self.FuseNop(startPc, nil) +
@@ -24,7 +25,7 @@ func (self *Vm) FuseAddInt(startPc Pc, prevOp *Op) int {
 			count += self.FuseAddInt(pc+1, prevOp)
 			pc = op.GotoPc()
 			continue
-		case NOP:
+		case NOP, POS_OP, TRACE_OP:
 			pc++
 			continue
 		}
@@ -46,13 +47,47 @@ func (self *Vm) FuseAddInt(startPc Pc, prevOp *Op) int {
 	return count
 }
 
+func (self *Vm) FuseEqInt(startPc Pc, prevOp *Op) int {
+	count := 0
+	
+	for pc := startPc; pc < len(self.Code); {
+		op := &self.Code[pc]
+
+		switch op.Id() {
+		case GOTO_OP:
+			count += self.FuseEqInt(pc+1, prevOp)
+			pc = op.GotoPc()
+			continue
+		case NOP, POS_OP, TRACE_OP:
+			pc++
+			continue
+		}
+
+		if prevOp != nil &&
+			prevOp.Id() == PUSH_INT_OP &&
+			op.Id() == CALL_PRIM_OP &&
+			op.CallPrim() == self.AbcLib.EqPrim.tag {
+			fmt.Fprintf(self.Stdout, "Fusing %v EQ_INT\n", pc);
+			*op = EqIntOp(prevOp.PushInt())
+			*prevOp = NOp()
+			count++
+		}
+		
+		prevOp = op
+		pc++
+	}
+
+	return count
+}
+
 func (self *Vm) FuseGoto(startPc Pc, prevOp *Op) int {
 	count := 0
 	
 	for pc := startPc; pc < len(self.Code); {
 		op := &self.Code[pc]
 
-		if  op.Id() == NOP {
+		switch op.Id() {
+		case NOP, POS_OP, TRACE_OP:
 			pc++
 			continue
 		}
@@ -89,7 +124,7 @@ func (self *Vm) FuseGtInt(startPc Pc, prevOp *Op) int {
 			count += self.FuseGtInt(pc+1, prevOp)
 			pc = op.GotoPc()
 			continue
-		case NOP, TRACE_OP:
+		case NOP, POS_OP, TRACE_OP:
 			pc++
 			continue
 		}
@@ -117,6 +152,12 @@ func (self *Vm) FuseNop(startPc Pc, prevOp *Op) int {
 	for pc := startPc; pc < len(self.Code); pc++ {
 		op := &self.Code[pc]
 
+		switch op.Id() {
+		case POS_OP, TRACE_OP:
+			pc++
+			continue
+		}
+
 		if prevOp != nil && (prevOp.Id() == GOTO_OP || prevOp.Id() == NOP) && op.Id() == NOP {
 			fmt.Fprintf(self.Stdout, "Fusing %v NOP\n", pc);
 			*prevOp = GotoOp(pc+1)
@@ -140,7 +181,7 @@ func (self *Vm) FuseRec(startPc Pc, prevOp *Op) int {
 			count += self.FuseRec(pc+1, prevOp)
 			pc = op.GotoPc()
 			continue
-		case NOP:
+		case NOP, POS_OP, TRACE_OP:
 			pc++
 			continue
 		}
@@ -169,7 +210,7 @@ func (self *Vm) FuseSubInt(startPc Pc, prevOp *Op) int {
 			count += self.FuseSubInt(pc+1, prevOp)
 			pc = op.GotoPc()
 			continue
-		case NOP:
+		case NOP, POS_OP, TRACE_OP:
 			pc++
 			continue
 		}
