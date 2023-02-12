@@ -1,3 +1,4 @@
+* add EqInt op
 * profile fib/fibt
 * add def prim
 ** emit/eval arg at emit time

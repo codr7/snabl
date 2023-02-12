@@ -54,11 +54,11 @@ Testing T...OK
 ```
   load "bench/fib.sl"
 
-4.203362269s
+3.624971062s
 ```
 
 ```
   load "bench/fibt.sl"
 
-2.141586283s
+1.944388805s
 ```

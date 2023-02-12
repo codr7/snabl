@@ -51,11 +51,12 @@ func (self *Vm) Eval(pc *Pc) error {
 			}
 
 			*pc++
-		case CLEAR_OP:
-			self.Stack.Clear()
-			*pc++
 		case GOTO_OP:
 			*pc = op.GotoPc()
+		case GT_INT_OP:
+			v := self.Stack.Top(0)
+			v.Init(&self.AbcLib.BoolType, v.d.(int) > op.GtInt())
+			*pc++
 		case IF_OP:
 			if self.Stack.Pop().Bool() {
 				*pc++
