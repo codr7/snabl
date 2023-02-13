@@ -19,7 +19,6 @@ type AbcLib struct {
 	PrimType PrimType
 	SliceType SliceType
 	StringType StringType
-	TimeType TimeType
 
 	BenchMacro, DebugMacro, DefMacro, DefunMacro, IfMacro, PosMacro, TestMacro, TraceMacro Macro
 	
@@ -41,7 +40,6 @@ func (self *AbcLib) Init(vm *Vm) {
 	self.BindType(&self.PrimType, "Prim")
 	self.BindType(&self.SliceType, "Slice")
 	self.BindType(&self.StringType, "String")
-	self.BindType(&self.TimeType, "Time")
 
 	self.BindMacro(&self.BenchMacro, "bench", 2,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
@@ -215,21 +213,6 @@ func (self *AbcLib) Init(vm *Vm) {
 		return nil
 	})
 
-	self.BindPrim(&self.HoursPrim, "hours", 1, func(self *Prim, vm *Vm, pos *Pos) error {
-		v := vm.Stack.Top(0)
-
-		switch v.t {
-		case &vm.AbcLib.IntType:
-			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Hour)
-		case &vm.AbcLib.TimeType:
-			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Hours()))
-		default:
-			return vm.E(pos, "hours not supported: %v", v.String())
-		}
-
-		return nil
-	})
-
 	self.BindPrim(&self.LenPrim, "len", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		v := vm.Stack.Pop()
 		t, ok := v.t.(LenType)
@@ -265,36 +248,6 @@ func (self *AbcLib) Init(vm *Vm) {
 		return nil
 	})
 
-	self.BindPrim(&self.MinsPrim, "mins", 1, func(self *Prim, vm *Vm, pos *Pos) error {
-		v := vm.Stack.Top(0)
-
-		switch v.t {
-		case &vm.AbcLib.IntType:
-			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Minute)
-		case &vm.AbcLib.TimeType:
-			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Minutes()))
-		default:
-			return vm.E(pos, "mins not supported: %v", v.String())
-		}
-
-		return nil
-	})
-
-	self.BindPrim(&self.MsecsPrim, "msecs", 1, func(self *Prim, vm *Vm, pos *Pos) error {
-		v := vm.Stack.Top(0)
-
-		switch v.t {
-		case &vm.AbcLib.IntType:
-			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Millisecond)
-		case &vm.AbcLib.TimeType:
-			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Milliseconds()))
-		default:
-			return vm.E(pos, "msecs not supported: %v", v.String())
-		}
-
-		return nil
-	})
-
 	self.BindPrim(&self.SayPrim, "say", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		if err := vm.Stack.Pop().Write(vm.Stdout); err != nil {
 			return err
@@ -302,21 +255,6 @@ func (self *AbcLib) Init(vm *Vm) {
 
 		if _, err := fmt.Fprintln(vm.Stdout, ""); err != nil {
 			return err
-		}
-
-		return nil
-	})
-
-	self.BindPrim(&self.SecsPrim, "secs", 1, func(self *Prim, vm *Vm, pos *Pos) error {
-		v := vm.Stack.Top(0)
-
-		switch v.t {
-		case &vm.AbcLib.IntType:
-			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Second)
-		case &vm.AbcLib.TimeType:
-			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Seconds()))
-		default:
-			return vm.E(pos, "secs not supported: %v", v.String())
 		}
 
 		return nil
@@ -534,30 +472,4 @@ func (self *StringType) Gt(left, right V) bool {
 
 func (self *StringType) Lt(left, right V) bool {
 	return left.d.(string) < right.d.(string)
-}
-
-type TimeType struct {
-	BasicType
-}
-
-func (self *TimeType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
-	vm.Code[vm.Emit()] = PushTimeOp(val.d.(time.Duration))
-	return nil
-}
-
-func (self *TimeType) Dump(val V, out io.Writer) error {
-	_, err := fmt.Fprintf(out, "%v", val.d.(time.Duration))
-	return err
-}
-
-func (self *TimeType) Write(val V, out io.Writer) error {
-	return self.Dump(val, out)
-}
-
-func (self *TimeType) Gt(left, right V) bool {
-	return left.d.(time.Duration) > right.d.(time.Duration)
-}
-
-func (self *TimeType) Lt(left, right V) bool {
-	return left.d.(time.Duration) < right.d.(time.Duration)
 }

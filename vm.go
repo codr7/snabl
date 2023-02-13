@@ -22,6 +22,7 @@ type Vm struct {
 	Stdout io.Writer
 
 	AbcLib AbcLib
+	TimeLib TimeLib
 	
 	Tags []V
 	
@@ -39,6 +40,7 @@ func (self *Vm) Init() {
 	self.Stdin = os.Stdin
 	self.Stdout = os.Stdout
 	self.AbcLib.Init(self)
+	self.TimeLib.Init(self)
 	self.Env = NewEnv(nil)
 	self.Stack = new(Stack)
 }

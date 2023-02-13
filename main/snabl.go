@@ -11,6 +11,7 @@ func main() {
 	var vm snabl.Vm
 	vm.Init()
 	vm.Env.Import(&vm.AbcLib, &vm, nil)
+	vm.Env.Import(&vm.TimeLib, &vm, nil)
 
 	args := os.Args[1:]
 	var cmd string

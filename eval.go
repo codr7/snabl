@@ -35,7 +35,7 @@ func (self *Vm) Eval(pc *Pc) error {
 				self.Stack.Clear()
 			}
 
-			self.Stack.Push(&self.AbcLib.TimeType, time.Now().Sub(startTime))
+			self.Stack.Push(&self.TimeLib.TimeType, time.Now().Sub(startTime))
 			*pc = benchPc
 		case CALL_FUN_OP:
 			f := self.Tags[op.CallFun()].d.(*Fun)
@@ -85,7 +85,7 @@ func (self *Vm) Eval(pc *Pc) error {
 			self.Stack.Push(&self.AbcLib.NilType, nil)
 			*pc++
 		case PUSH_TIME_OP:
-			self.Stack.Push(&self.AbcLib.TimeType, op.PushTime())
+			self.Stack.Push(&self.TimeLib.TimeType, op.PushTime())
 			*pc++
 		case REC_OP:
 			c := self.call
