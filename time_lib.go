@@ -96,10 +96,10 @@ func (self *TimeType) Write(val V, out io.Writer) error {
 	return self.Dump(val, out)
 }
 
-func (self *TimeType) Gt(left, right V) bool {
-	return left.d.(time.Duration) > right.d.(time.Duration)
+func (self *TimeType) Gt(left, right V, vm *Vm, pos *Pos) (bool, error) {
+	return left.d.(time.Duration) > right.d.(time.Duration), nil
 }
 
-func (self *TimeType) Lt(left, right V) bool {
-	return left.d.(time.Duration) < right.d.(time.Duration)
+func (self *TimeType) Lt(left, right V, vm *Vm, pos *Pos) (bool, error) {
+	return left.d.(time.Duration) < right.d.(time.Duration), nil
 }

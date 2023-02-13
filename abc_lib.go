@@ -12,6 +12,7 @@ type AbcLib struct {
 	FormType FormType
 	FunType FunType
 	IntType IntType
+	IterType IterType
 	MacroType MacroType
 	MetaType MetaType
 	NilType NilType
@@ -22,8 +23,8 @@ type AbcLib struct {
 
 	BenchMacro, DebugMacro, DefMacro, DefunMacro, IfMacro, PosMacro, TestMacro, TraceMacro Macro
 	
-	AddPrim, EqPrim, FailPrim, GtPrim, HoursPrim, LenPrim, LoadPrim, LtPrim, MinsPrim, MsecsPrim, SayPrim,
-	SecsPrim, SleepPrim, SubPrim Prim
+	AddPrim, EqPrim, FailPrim, GtPrim, IterPrim, LenPrim, LoadPrim, LtPrim, SayPrim, SleepPrim,
+	SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
@@ -35,6 +36,7 @@ func (self *AbcLib) Init(vm *Vm) {
 	self.BindType(&self.FormType, "Form")
 	self.BindType(&self.FunType, "Fun")
 	self.BindType(&self.IntType, "Int")
+	self.BindType(&self.IterType, "Iter")
 	self.BindType(&self.MacroType, "Macro")
 	self.BindType(&self.PosType, "Pos")
 	self.BindType(&self.PrimType, "Prim")
@@ -206,10 +208,28 @@ func (self *AbcLib) Init(vm *Vm) {
 		t, ok := a.t.(CmpType)
 
 		if !ok {
-			return vm.E(pos, "> not supported: %v", t.String())
+			return vm.E(pos, "> not supported: %v", a.String())
+		}
+
+		gt, err := t.Gt(*a, *b, vm, pos)
+
+		if err != nil {
+			return err
 		}
 		
-		a.Init(&vm.AbcLib.BoolType, t.Gt(*a, *b))
+		a.Init(&vm.AbcLib.BoolType, gt)
+		return nil
+	})
+
+	self.BindPrim(&self.IterPrim, "iter", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		v := vm.Stack.Pop()
+		t, ok := v.t.(SeqType)
+
+		if !ok {
+			vm.E(pos, "iter not supported: ", v.t.String())
+		}
+		
+		vm.Stack.Push(&vm.AbcLib.IterType, t.Iter(*v))
 		return nil
 	})
 
@@ -218,7 +238,7 @@ func (self *AbcLib) Init(vm *Vm) {
 		t, ok := v.t.(LenType)
 
 		if !ok {
-			return vm.E(pos, "'len' not supported: %v", v.String())
+			return vm.E(pos, "len not supported: %v", v.String())
 		}
 
 		vm.Stack.Push(&vm.AbcLib.IntType, t.Len(*v))
@@ -241,10 +261,16 @@ func (self *AbcLib) Init(vm *Vm) {
 		t, ok := a.t.(CmpType)
 
 		if !ok {
-			return vm.E(pos, "> not supported: %v", t.String())
+			return vm.E(pos, "< not supported: %v", a.String())
+		}
+
+		lt, err := t.Lt(*a, *b, vm, pos)
+
+		if err != nil {
+			return err
 		}
 		
-		a.Init(&vm.AbcLib.BoolType, t.Lt(*a, *b))
+		a.Init(&vm.AbcLib.BoolType, lt)
 		return nil
 	})
 
@@ -350,12 +376,24 @@ func (self *IntType) Write(val V, out io.Writer) error {
 	return self.Dump(val, out)
 }
 
-func (self *IntType) Gt(left, right V) bool {
-	return left.d.(int) > right.d.(int)
+func (self *IntType) Gt(left, right V, vm *Vm, pos *Pos) (bool, error) {
+	return left.d.(int) > right.d.(int), nil
 }
 
-func (self *IntType) Lt(left, right V) bool {
-	return left.d.(int) < right.d.(int)
+func (self *IntType) Lt(left, right V, vm *Vm, pos *Pos) (bool, error) {
+	return left.d.(int) < right.d.(int), nil
+}
+
+type IterType struct {
+	BasicType
+}
+
+func (self *IterType) Dump(val V, out io.Writer) error {
+	return val.d.(Iter).Dump(out)
+}
+
+func (self *IterType) Write(val V, out io.Writer) error {
+	return self.Dump(val, out)
 }
 
 type MacroType struct {
@@ -432,22 +470,6 @@ func (self *PrimType) Write(val V, out io.Writer) error {
 	return self.Dump(val, out)
 }
 
-type SliceType struct {
-	BasicType
-}
-
-func (self *SliceType) Dump(val V, out io.Writer) error {
-	return val.d.(*Slice).Dump(out)
-}
-
-func (self *SliceType) Write(val V, out io.Writer) error {
-	return self.Dump(val, out)
-}
-
-func (self *SliceType) Len(val V) int {
-	return val.d.(*Slice).Len()
-}
-
 type StringType struct {
 	BasicType
 }
@@ -466,10 +488,10 @@ func (self *StringType) Len(val V) int {
 	return len(val.d.(string))
 }
 
-func (self *StringType) Gt(left, right V) bool {
-	return left.d.(string) > right.d.(string)
+func (self *StringType) Gt(left, right V, vm *Vm, pos *Pos) (bool, error) {
+	return left.d.(string) > right.d.(string), nil
 }
 
-func (self *StringType) Lt(left, right V) bool {
-	return left.d.(string) < right.d.(string)
+func (self *StringType) Lt(left, right V, vm *Vm, pos *Pos) (bool, error) {
+	return left.d.(string) < right.d.(string), nil
 }

@@ -16,14 +16,8 @@ type Type interface {
 }
 
 type CmpType interface {
-	Type
-	Gt(left, right V) bool
-	Lt(left, right V) bool
-}
-
-type LenType interface {
-	Type
-	Len(val V) int
+	Gt(left, right V, vm *Vm, pos *Pos) (bool, error)
+	Lt(left, right V, vm *Vm, pos *Pos) (bool, error)
 }
 
 type BasicType struct {
