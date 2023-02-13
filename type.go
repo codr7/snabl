@@ -12,9 +12,16 @@ type Type interface {
 	Dump(val V, out io.Writer) error
 	Write(val V, out io.Writer) error
 	Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error
+	String() string
 }
 
-type SeqType interface {
+type CmpType interface {
+	Type
+	Gt(left, right V) bool
+	Lt(left, right V) bool
+}
+
+type LenType interface {
 	Type
 	Len(val V) int
 }
@@ -42,5 +49,9 @@ func (Self *BasicType) Eq(left, right V) bool {
 func (self *BasicType) Emit(val V, args *Forms, vm *Vm, env Env, pos Pos) error {	
 	vm.EmitTag(val.t, val.d)
 	return nil
+}
+
+func (self *BasicType) String() string {
+	return self.name
 }
 

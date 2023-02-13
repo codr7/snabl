@@ -1,2 +1,13 @@
-* add def prim
-** emit/eval arg at emit time
+* add for loop
+** add iter type
+** add seq type with iter method
+** emit new env with var bound
+** create new tag for each loop
+*** add TagType
+**** emit PushTag
+**** bind loop var to tag
+** add ForOp
+**** eval body
+**** backup/restore var tag
+
+for i [1 2 3] say i

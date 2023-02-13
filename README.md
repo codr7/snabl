@@ -98,7 +98,7 @@ The type of string values.
 The type of time intervals.
 
 ```
-  minutes 10
+  mins 10
   
 10m0s
 ```
@@ -107,7 +107,7 @@ The type of time intervals.
 Curlies may be used to create new compile time environments.
 
 ```
-   {defun foo() 42 foo}
+  {def foo 42 foo}
 
 [42]
   foo
@@ -163,7 +163,7 @@ You may find more examples [here](https://github.com/codr7/snabl/blob/main/test/
 `bench n expr` evaluates `expr` `n` times and returns elapsed time.
 
 ```
-bench 10 sleep mseconds 100
+bench 10 sleep msecs 100
   
 1.004674633s
 ```

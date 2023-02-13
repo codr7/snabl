@@ -21,10 +21,10 @@ type AbcLib struct {
 	StringType StringType
 	TimeType TimeType
 
-	BenchMacro, DebugMacro, DefunMacro, IfMacro, PosMacro, TestMacro, TraceMacro Macro
+	BenchMacro, DebugMacro, DefMacro, DefunMacro, IfMacro, PosMacro, TestMacro, TraceMacro Macro
 	
-	AddPrim, EqPrim, FailPrim, GtPrim, LenPrim, LoadPrim, MinutesPrim, MsecondsPrim, SayPrim, SleepPrim,
-	SubPrim Prim
+	AddPrim, EqPrim, FailPrim, GtPrim, HoursPrim, LenPrim, LoadPrim, LtPrim, MinsPrim, MsecsPrim, SayPrim,
+	SecsPrim, SleepPrim, SubPrim Prim
 }
 
 func (self *AbcLib) Init(vm *Vm) {
@@ -66,7 +66,30 @@ func (self *AbcLib) Init(vm *Vm) {
 			vm.Debug = !vm.Debug
 			return nil
 		})
-	
+
+	self.BindMacro(&self.DefMacro, "def", 2,
+		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
+			name := args.Pop().(*IdForm).name
+
+			skipPc := vm.Emit()
+			pc := vm.EmitPc()
+			
+			if err := args.Pop().Emit(args, vm, env); err != nil {
+				return err
+			}
+
+			vm.Code[vm.Emit()] = StopOp()
+			vm.Code[skipPc] = GotoOp(vm.EmitPc())
+
+			if err := vm.Eval(&pc); err != nil {
+				return err
+			}
+
+			v := vm.Stack.Pop()
+			env.Bind(name, v.t, v.d)
+			return nil
+		})
+
 	self.BindMacro(&self.DefunMacro, "defun", 3,
 		func(self *Macro, args *Forms, vm *Vm, env Env, pos Pos) error {
 			name := args.Pop().(*IdForm).name
@@ -76,7 +99,7 @@ func (self *AbcLib) Init(vm *Vm) {
 				funArgs = append(funArgs, f.(*IdForm).name)
 			}
 
-			gotoPc := vm.Emit()
+			skipPc := vm.Emit()
 			prevFun := vm.fun
 
 			defer func () {
@@ -91,7 +114,7 @@ func (self *AbcLib) Init(vm *Vm) {
 			}
 			
 			vm.Code[vm.Emit()] = RetOp()
-			vm.Code[gotoPc] = GotoOp(vm.EmitPc())
+			vm.Code[skipPc] = GotoOp(vm.EmitPc())
 			return nil
 		})
 
@@ -175,18 +198,44 @@ func (self *AbcLib) Init(vm *Vm) {
 	})
 
 	self.BindPrim(&self.GtPrim, ">", 2, func(self *Prim, vm *Vm, pos *Pos) error {
-		b := vm.Stack.Pop().d.(int)
+		b := vm.Stack.Pop()
 		a := vm.Stack.Top(0)
-		a.Init(&vm.AbcLib.BoolType, a.d.(int) > b)
+
+		if a.t != b.t {
+			return vm.E(pos, "Type mismtch: %v/%v", a.t.String(), b.t.String())
+		}
+
+		t, ok := a.t.(CmpType)
+
+		if !ok {
+			return vm.E(pos, "> not supported: %v", t.String())
+		}
+		
+		a.Init(&vm.AbcLib.BoolType, t.Gt(*a, *b))
+		return nil
+	})
+
+	self.BindPrim(&self.HoursPrim, "hours", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		v := vm.Stack.Top(0)
+
+		switch v.t {
+		case &vm.AbcLib.IntType:
+			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Hour)
+		case &vm.AbcLib.TimeType:
+			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Hours()))
+		default:
+			return vm.E(pos, "hours not supported: %v", v.String())
+		}
+
 		return nil
 	})
 
 	self.BindPrim(&self.LenPrim, "len", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		v := vm.Stack.Pop()
-		t, ok := v.t.(SeqType)
+		t, ok := v.t.(LenType)
 
 		if !ok {
-			return vm.E(pos, "Expected sequence: %v", v.String())
+			return vm.E(pos, "'len' not supported: %v", v.String())
 		}
 
 		vm.Stack.Push(&vm.AbcLib.IntType, t.Len(*v))
@@ -198,15 +247,51 @@ func (self *AbcLib) Init(vm *Vm) {
 		return vm.Load(p, true)
 	})
 
-	self.BindPrim(&self.MinutesPrim, "minutes", 1, func(self *Prim, vm *Vm, pos *Pos) error {
-		v := vm.Stack.Top(0)
-		v.Init(&vm.AbcLib.TimeType, time.Minute * time.Duration(v.d.(int)))
+	self.BindPrim(&self.LtPrim, "<", 2, func(self *Prim, vm *Vm, pos *Pos) error {
+		b := vm.Stack.Pop()
+		a := vm.Stack.Top(0)
+
+		if a.t != b.t {
+			return vm.E(pos, "Type mismtch: %v/%v", a.t.String(), b.t.String())
+		}
+
+		t, ok := a.t.(CmpType)
+
+		if !ok {
+			return vm.E(pos, "> not supported: %v", t.String())
+		}
+		
+		a.Init(&vm.AbcLib.BoolType, t.Lt(*a, *b))
 		return nil
 	})
 
-	self.BindPrim(&self.MsecondsPrim, "mseconds", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+	self.BindPrim(&self.MinsPrim, "mins", 1, func(self *Prim, vm *Vm, pos *Pos) error {
 		v := vm.Stack.Top(0)
-		v.Init(&vm.AbcLib.TimeType, time.Millisecond * time.Duration(v.d.(int)))
+
+		switch v.t {
+		case &vm.AbcLib.IntType:
+			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Minute)
+		case &vm.AbcLib.TimeType:
+			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Minutes()))
+		default:
+			return vm.E(pos, "mins not supported: %v", v.String())
+		}
+
+		return nil
+	})
+
+	self.BindPrim(&self.MsecsPrim, "msecs", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		v := vm.Stack.Top(0)
+
+		switch v.t {
+		case &vm.AbcLib.IntType:
+			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Millisecond)
+		case &vm.AbcLib.TimeType:
+			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Milliseconds()))
+		default:
+			return vm.E(pos, "msecs not supported: %v", v.String())
+		}
+
 		return nil
 	})
 
@@ -217,6 +302,21 @@ func (self *AbcLib) Init(vm *Vm) {
 
 		if _, err := fmt.Fprintln(vm.Stdout, ""); err != nil {
 			return err
+		}
+
+		return nil
+	})
+
+	self.BindPrim(&self.SecsPrim, "secs", 1, func(self *Prim, vm *Vm, pos *Pos) error {
+		v := vm.Stack.Top(0)
+
+		switch v.t {
+		case &vm.AbcLib.IntType:
+			v.Init(&vm.AbcLib.TimeType, time.Duration(v.d.(int)) * time.Second)
+		case &vm.AbcLib.TimeType:
+			v.Init(&vm.AbcLib.IntType, int(v.d.(time.Duration).Seconds()))
+		default:
+			return vm.E(pos, "secs not supported: %v", v.String())
 		}
 
 		return nil
@@ -312,6 +412,14 @@ func (self *IntType) Write(val V, out io.Writer) error {
 	return self.Dump(val, out)
 }
 
+func (self *IntType) Gt(left, right V) bool {
+	return left.d.(int) > right.d.(int)
+}
+
+func (self *IntType) Lt(left, right V) bool {
+	return left.d.(int) < right.d.(int)
+}
+
 type MacroType struct {
 	BasicType
 }
@@ -330,7 +438,7 @@ type MetaType struct {
 }
 
 func (self *MetaType) Dump(val V, out io.Writer) error {
-	_, err := io.WriteString(out, val.d.(Type).Name())
+	_, err := io.WriteString(out, val.d.(Type).String())
 	return err
 }
 
@@ -420,6 +528,14 @@ func (self *StringType) Len(val V) int {
 	return len(val.d.(string))
 }
 
+func (self *StringType) Gt(left, right V) bool {
+	return left.d.(string) > right.d.(string)
+}
+
+func (self *StringType) Lt(left, right V) bool {
+	return left.d.(string) < right.d.(string)
+}
+
 type TimeType struct {
 	BasicType
 }
@@ -436,4 +552,12 @@ func (self *TimeType) Dump(val V, out io.Writer) error {
 
 func (self *TimeType) Write(val V, out io.Writer) error {
 	return self.Dump(val, out)
+}
+
+func (self *TimeType) Gt(left, right V) bool {
+	return left.d.(time.Duration) > right.d.(time.Duration)
+}
+
+func (self *TimeType) Lt(left, right V) bool {
+	return left.d.(time.Duration) < right.d.(time.Duration)
 }

@@ -10,12 +10,24 @@ test T = "foo" "foo"
 test F = "foo" "bar"
 
 test T > 2 1
-test F > 1 2
+test T < 1 2
+
+test T > secs 1 msecs 1
+test T < msecs 1 secs 1
+
+test T < "abc" "def"
+test T > "def" "abc"
 
 test 3 + 1 2
 test 1 - 3 2
 
 test 3 (+ 1 2)
+
+{
+  def foo + 3 4
+
+  test 7 foo
+}
 
 {
   defun fib(n)
